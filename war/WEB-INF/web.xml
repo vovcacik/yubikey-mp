@@ -4,13 +4,23 @@ xmlns="http://java.sun.com/xml/ns/javaee"
 xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
 http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
+	
 	<servlet>
-		<servlet-name>YubikeyMP</servlet-name>
-		<servlet-class>com.yubico.yubikeymp.YubikeyMPServlet</servlet-class>
+		<servlet-name>YubikeyEval</servlet-name>
+		<servlet-class>com.yubico.yubikeymp.YubikeyEval</servlet-class>
 	</servlet>
 	<servlet-mapping>
-		<servlet-name>YubikeyMP</servlet-name>
+		<servlet-name>YubikeyEval</servlet-name>
 		<url-pattern>/eval</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>YubikeyReg</servlet-name>
+		<servlet-class>com.yubico.yubikeymp.YubikeyReg</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>YubikeyReg</servlet-name>
+		<url-pattern>/Reg</url-pattern>
 	</servlet-mapping>
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>
