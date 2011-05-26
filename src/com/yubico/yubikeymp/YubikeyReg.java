@@ -22,6 +22,7 @@ public class YubikeyReg extends HttpServlet {
         if (otp != null && otp.verify()) {
             final Entity entity = new Entity("Secrets");
             // TODO add from url params...
+            // TODO do i have to check user input - sql inject etc.?
             entity.setProperty("user", otp.getStaticPart()); // TODO has to be unique, unique by design?
             entity.setProperty("pid", pid);// FIXME has to be unique in user's context
             entity.setProperty("secret", secret);
@@ -29,6 +30,8 @@ public class YubikeyReg extends HttpServlet {
             datastore.put(entity);
         } else {
             // TODO verification failed
+            resp.getWriter().println("otp is null\npid: " + pid);
+            resp.getWriter().println("secret: " + secret);
         }
     }
 }
