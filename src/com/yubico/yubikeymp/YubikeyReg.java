@@ -16,7 +16,7 @@ import com.google.appengine.api.datastore.KeyFactory;
 public class YubikeyReg extends HttpServlet {
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String otp = req.getParameter("otp");
-        String pid = req.getParameter("pid");
+        // String pid = req.getParameter("pid");
         resp.setContentType("text/plain"); // TODO unicode support?
 
         Key key = KeyFactory.createKey("User", otp);
