@@ -26,6 +26,9 @@
 		Entity admin = new Entity("Prefs");
 		admin.setProperty("admin", "");
 		
+	    Entity clientID = new Entity("Prefs");
+		clientID.setProperty("clientid", "");
+		
 		Entity secret = new Entity("Secrets");
 		secret.setProperty("user", "");
 		secret.setProperty("pid", "");
@@ -33,6 +36,7 @@
 		
 		datastore.put(init);
 		datastore.put(admin);
+		datastore.put(clientID);
 		datastore.put(secret);
 %>initialization successful<%
 	}

@@ -10,8 +10,19 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 
+//TODO get /reg working
+
+/**
+ * This class is under development. May be used to add passwords to server. DISABLED at this moment.
+ * 
+ * @author Vlastimil Ovčáčík
+ */
 @SuppressWarnings("serial")
 public class YubikeyReg extends HttpServlet {
+
+    /**
+     * {@inheritDoc}
+     */
     public void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws IOException {
         resp.setContentType("text/plain");
         resp.setCharacterEncoding("utf-8");

@@ -14,19 +14,27 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Query;
 
+/**
+ * This class handles requests for master passwords via /eval URL.
+ * 
+ * @author Vlastimil Ovčáčík
+ */
 @SuppressWarnings("serial")
 public class YubikeyEval extends HttpServlet {
 
+    /**
+     * {@inheritDoc}
+     */
     public void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws IOException {
         resp.setContentType("text/plain");
         resp.setCharacterEncoding("utf-8");
 
         final YubikeyOTP otp = YubikeyOTP.createInstance(req.getParameter("otp"));
-        final String pid = req.getParameter("pid"); // TODO decode from url, maybe already decoded?
+        final String pid = req.getParameter("pid");
 
         if (otp != null && otp.verify()) {
             final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-            final Query query = new Query("Secrets");// FIXME use filters
+            final Query query = new Query("Secrets");
             query.addFilter("user", Query.FilterOperator.EQUAL, otp.getStaticPart());
             query.addFilter("pid", Query.FilterOperator.EQUAL, pid);
 
@@ -38,8 +46,9 @@ public class YubikeyEval extends HttpServlet {
                 final Entity entity = iterator.next();
                 final String secret = (String) entity.getProperty("secret");
                 resp.getWriter().print(secret);
-                // TODO destroy resp, entity, secret and secrets variables
+                // TODO print only first match?
             }
+            // TODO destroy resp, entity, secret and secrets variables
         } else {
             // TODO verification failed
         }
