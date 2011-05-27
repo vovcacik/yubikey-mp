@@ -1,6 +1,7 @@
 package com.yubico.yubikeymp;
 
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -16,6 +17,7 @@ import com.yubico.YubicoClient;
  */
 public class YubikeyOTP {
 
+    private static final Logger LOG = Logger.getLogger(YubikeyOTP.class.getName());
     /**
      * Static part of OTP. Also known as "Yubikey ID". We use static part as user ID.
      */
@@ -36,6 +38,7 @@ public class YubikeyOTP {
     private YubikeyOTP(final String staticPart, final String dynamicPart) {
         this.staticPart = staticPart;
         this.dynamicPart = dynamicPart;
+        LOG.info("Yubikey: new OTP instance created with static part: " + this.staticPart + ".");
     }
 
     /**
@@ -50,6 +53,7 @@ public class YubikeyOTP {
         // OTP should has length between <33, 44>. Note that valid Yubikey may be long only 32 characters,
         // but then it has no static part, which is required for yubikey-mp, thus the bottom limit is 33 characters.
         if (otp.length() <= 32 || otp.length() > 44) {
+            LOG.info("Yubikey: invalid OTP length [" + otp.length() + "] in: " + otp + ".");
             return null;
         }
 
@@ -58,6 +62,7 @@ public class YubikeyOTP {
             int code = otp.codePointAt(i);
             if (code < 98 || code > 118 || (code >= 111 && code <= 113) || code == 109 || code == 115) {
                 // Current character is not defined for Modhex.
+                LOG.info("Yubikey: invalid OTP character [" + otp.charAt(i) + "] in: " + otp + ".");
                 return null;
             }
         }
@@ -87,14 +92,18 @@ public class YubikeyOTP {
         final int clientID = this.getClientID();
         final YubicoClient yubicoClient = new YubicoClient(clientID);
         if (yubicoClient.verify(this.staticPart + this.dynamicPart)) {
+            LOG.info("Yubikey: OTP successfully verified: " + this.staticPart + this.dynamicPart + ".");
             return true;
         } else {
             // FIXME delete ->
             // Special dynamic part for testing purposes.
             if (this.dynamicPart.equals("cbdefghijklnrtuvcbdefghijklnrtuv")) {
+                LOG.warning("Yubikey: invalid OTP marked as verified for testing purposes: " + this.staticPart
+                        + this.dynamicPart + ".");
                 return true;
             }
             // FIXME <- delete
+            LOG.warning("Yubikey: OTP verification failed: " + this.staticPart + this.dynamicPart + ".");
             return false;
         }
     }
@@ -105,6 +114,8 @@ public class YubikeyOTP {
      * @return Client ID from datastore Prefs/clientid if defined or 1 as default value.
      */
     private int getClientID() {
+        int clientID = 1; // TODO this default value ok?
+
         final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         final Query query = new Query("Prefs");
         query.addFilter("clientid", Query.FilterOperator.NOT_EQUAL, "");
@@ -113,11 +124,12 @@ public class YubikeyOTP {
         
         if (clientIDs.hasNext()) {
             final Entity entity = clientIDs.next();
-            final String clientIDString = (String) entity.getProperty("clientid");
-            final int clientID = Integer.parseInt(clientIDString);
-            if (clientID > 0)
-                return clientID;
+            final String idString = (String) entity.getProperty("clientid");
+            final int id = Integer.parseInt(idString);
+            if (id > 0) {
+                clientID = id;
+            }
         }
-        return 1; // TODO this default value ok?
+        return clientID;
     }
 }
