@@ -13,10 +13,11 @@ import com.google.appengine.api.datastore.Entity;
 @SuppressWarnings("serial")
 public class YubikeyReg extends HttpServlet {
     public void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws IOException {
-        resp.setContentType("text/plain"); // TODO unicode support?
+        resp.setContentType("text/plain");
+        resp.setCharacterEncoding("utf-8");
 
         final YubikeyOTP otp = YubikeyOTP.createInstance(req.getParameter("otp"));
-        final String pid = req.getParameter("pid"); // TODO encoding...
+        final String pid = req.getParameter("pid"); // TODO encoding of param?
         final String secret = req.getParameter("secret"); // TODO destroy after usage
 
         if (otp != null && otp.verify()) {

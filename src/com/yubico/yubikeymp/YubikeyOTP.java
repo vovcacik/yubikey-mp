@@ -41,7 +41,7 @@ public class YubikeyOTP {
             return true;
         } else {
             // FIXME delete ->
-            if (this.dynamicPart.equals("passpasspasspasspasspasspasspass")) {
+            if (this.dynamicPart.equals("cbdefghijklnrtuvcbdefghijklnrtuv")) {
                 return true;
             }
             // FIXME <- delete

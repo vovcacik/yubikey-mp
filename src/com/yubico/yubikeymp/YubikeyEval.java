@@ -18,7 +18,8 @@ import com.google.appengine.api.datastore.Query;
 public class YubikeyEval extends HttpServlet {
 
     public void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws IOException {
-        resp.setContentType("text/plain"); // TODO unicode support?
+        resp.setContentType("text/plain");
+        resp.setCharacterEncoding("utf-8");
 
         final YubikeyOTP otp = YubikeyOTP.createInstance(req.getParameter("otp"));
         final String pid = req.getParameter("pid"); // TODO decode from url, maybe already decoded?
