@@ -48,7 +48,7 @@ import java.net.URLConnection;
 
 public class YubicoClient {
     
-    static final String YUBICO_AUTH_SRV_URL = "http://api.yubico.com/wsapi/verify?id=";
+    static final String YUBICO_AUTH_SRV_URL = "https://api.yubico.com/wsapi/verify?id=";
     
     private int _clientId;
     private String _response;
