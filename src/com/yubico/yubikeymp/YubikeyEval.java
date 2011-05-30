@@ -23,7 +23,7 @@ import com.google.appengine.api.datastore.Query;
 @SuppressWarnings("serial")
 public class YubikeyEval extends HttpServlet {
 
-    private static final Logger LOG = Logger.getLogger(YubikeyEval.class.getName());
+    private static final Logger log = Logger.getLogger(YubikeyEval.class.getName());
 
     /**
      * {@inheritDoc}
@@ -52,7 +52,7 @@ public class YubikeyEval extends HttpServlet {
                 // TODO print only first match?
             }
             // TODO destroy resp, entity, secret and secrets variables
-            LOG.info("Yubikey: eval successfully finished. USER: " + otp.getStaticPart() + ". PID: " + pid + ".");
+            log.info("Yubikey: eval successfully finished. USER: " + otp.getStaticPart() + ". PID: " + pid + ".");
         } else {
             // TODO verification failed
         }
