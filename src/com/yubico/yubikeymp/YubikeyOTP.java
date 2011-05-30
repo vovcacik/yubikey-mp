@@ -43,16 +43,16 @@ public class YubikeyOTP {
 
     /**
      * Creates instance of YubikeyOTP. Represents valid OTP fulfilling extra requirements: <br/>
-     * - Device ID part of OTP is longer than 0
+     * - Yubikey ID part of OTP is 12 ModHex characters long.
      * 
      * @param otp
      *            Yubikey one time password
      * @return instance or null if OTP is not valid
      */
     public static YubikeyOTP createInstance(final String otp) {
-        // OTP should has length between <33, 44>. Note that valid Yubikey may be long only 32 characters,
-        // but then it has no static part, which is required for yubikey-mp, thus the bottom limit is 33 characters.
-        if (otp.length() <= 32 || otp.length() > 44) {
+        // OTP should has length exaclty 44 characters. Note that valid Yubikey may be long only 32 characters,
+        // but then it has no static part, which is required for yubikey-mp.
+        if (otp.length() != 44) {
             LOG.info("Yubikey: invalid OTP length [" + otp.length() + "] in: " + otp + ".");
             return null;
         }
@@ -95,14 +95,6 @@ public class YubikeyOTP {
             LOG.info("Yubikey: OTP successfully verified: " + this.staticPart + this.dynamicPart + ".");
             return true;
         } else {
-            // FIXME delete ->
-            // Special dynamic part for testing purposes.
-            if (this.dynamicPart.equals("cbdefghijklnrtuvcbdefghijklnrtuv")) {
-                LOG.warning("Yubikey: invalid OTP marked as verified for testing purposes: " + this.staticPart
-                        + this.dynamicPart + ".");
-                return true;
-            }
-            // FIXME <- delete
             LOG.warning("Yubikey: OTP verification failed: " + this.staticPart + this.dynamicPart + ".");
             return false;
         }
