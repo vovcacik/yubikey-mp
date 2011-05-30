@@ -92,7 +92,7 @@ public class YubikeyOTP {
     public boolean verify() {
         final int clientID = this.getClientID();
         final YubicoClient yubicoClient = new YubicoClient(clientID);
-        if (yubicoClient.verify(this.staticPart + this.dynamicPart)) {
+        if (yubicoClient.verify(this.toString())) {
             log.info("Yubikey: OTP successfully verified: " + this + ".");
             return true;
         } else {
