@@ -17,11 +17,13 @@ import com.yubico.YubicoClient;
  */
 public class YubikeyOTP {
 
-    private static final Logger LOG = Logger.getLogger(YubikeyOTP.class.getName());
+    private static final Logger log = Logger.getLogger(YubikeyOTP.class.getName());
+
     /**
-     * Static part of OTP. Also known as "Yubikey ID". We use static part as user ID.
+     * Static part of OTP. Also known as "Yubikey ID". We use static part as user ID in datastore.
      */
     private final String staticPart;
+
     /**
      * Dynamic part of OTP.
      */
@@ -38,7 +40,7 @@ public class YubikeyOTP {
     private YubikeyOTP(final String staticPart, final String dynamicPart) {
         this.staticPart = staticPart;
         this.dynamicPart = dynamicPart;
-        LOG.info("Yubikey: new OTP instance created with static part: " + this.staticPart + ".");
+        log.info("Yubikey: new OTP instance created with static part: " + this.staticPart + ".");
     }
 
     /**
@@ -50,10 +52,10 @@ public class YubikeyOTP {
      * @return instance or null if OTP is not valid
      */
     public static YubikeyOTP createInstance(final String otp) {
-        // OTP should has length exaclty 44 characters. Note that valid Yubikey may be long only 32 characters,
-        // but then it has no static part, which is required for yubikey-mp.
+        // OTP should has length exactly 44 ModHex characters. Note that valid Yubikey may be only 32 ModHex characters
+        // long, but then it has no static part. Yubikey-mp requires the static part to be 12 ModHex characters long.
         if (otp.length() != 44) {
-            LOG.info("Yubikey: invalid OTP length [" + otp.length() + "] in: " + otp + ".");
+            log.info("Yubikey: invalid OTP length [" + otp.length() + "] in: " + otp + ".");
             return null;
         }
 
@@ -62,11 +64,10 @@ public class YubikeyOTP {
             int code = otp.codePointAt(i);
             if (code < 98 || code > 118 || (code >= 111 && code <= 113) || code == 109 || code == 115) {
                 // Current character is not defined for Modhex.
-                LOG.info("Yubikey: invalid OTP character [" + otp.charAt(i) + "] in: " + otp + ".");
+                log.info("Yubikey: invalid OTP character [" + otp.charAt(i) + "] in: " + otp + ".");
                 return null;
             }
         }
-
         final String staticPart = otp.substring(0, otp.length() - 32);
         final String dynamicPart = otp.substring(otp.length() - 32);
         return new YubikeyOTP(staticPart, dynamicPart);
@@ -92,10 +93,10 @@ public class YubikeyOTP {
         final int clientID = this.getClientID();
         final YubicoClient yubicoClient = new YubicoClient(clientID);
         if (yubicoClient.verify(this.staticPart + this.dynamicPart)) {
-            LOG.info("Yubikey: OTP successfully verified: " + this.staticPart + this.dynamicPart + ".");
+            log.info("Yubikey: OTP successfully verified: " + this + ".");
             return true;
         } else {
-            LOG.warning("Yubikey: OTP verification failed: " + this.staticPart + this.dynamicPart + ".");
+            log.warning("Yubikey: OTP verification failed: " + this + ".");
             return false;
         }
     }
@@ -117,11 +118,47 @@ public class YubikeyOTP {
         if (clientIDs.hasNext()) {
             final Entity entity = clientIDs.next();
             final String idString = (String) entity.getProperty("clientid");
-            final int id = Integer.parseInt(idString);
+            final int id = Integer.parseInt(idString); // TODO what if idString is not a number?
             if (id > 0) {
                 clientID = id;
             }
         }
         return clientID;
+    }
+
+    /**
+     * String representation of YubikeyOTP is 44 ModHex characters long string.
+     * 
+     * @return 44 ModHex characters long Yubikey OTP
+     */
+    @Override
+    public String toString() {
+        return this.staticPart + this.dynamicPart;
+    }
+
+    /**
+     * Two Yubikey OTPs are equal when their ModHex representation is the same.
+     * 
+     * @param obj
+     *            any object
+     * @return true if provided obj parameter is YubikeyOTP instance with exact same ModHex representation, otherwise
+     *         false
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof YubikeyOTP) {
+            final YubikeyOTP otp = (YubikeyOTP) obj;
+            return this.toString().equals(otp.toString());
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int hashCode() {
+        return this.toString().hashCode();
     }
 }
