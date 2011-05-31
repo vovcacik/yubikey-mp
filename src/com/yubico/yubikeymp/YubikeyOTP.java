@@ -100,6 +100,10 @@ public class YubikeyOTP {
             return true;
         } else {
             log.warning("Yubikey: OTP verification failed: " + this + ".");
+            // if (this.toString().equals("cbdefghijklncbdefghijklnrtuvcbdefghijklnrtuv")) {
+            // log.warning("Yubikey: Demo OTP detected: " + this);
+            // return true;
+            // }
             return false;
         }
     }

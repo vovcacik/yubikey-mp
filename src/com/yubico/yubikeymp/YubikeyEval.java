@@ -39,6 +39,7 @@ public class YubikeyEval extends HttpServlet {
             final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
             final Query query = new Query("Secrets");
             query.addFilter("user", Query.FilterOperator.EQUAL, otp.getStaticPart());
+            // query.addFilter("user", Query.FilterOperator.EQUAL, "cbdefghijkln");
             query.addFilter("pid", Query.FilterOperator.EQUAL, pid);
 
             // TODO how to get unlimited results? asIterator maybe?
@@ -53,6 +54,7 @@ public class YubikeyEval extends HttpServlet {
             }
             // TODO destroy resp, entity, secret and secrets variables
             log.info("Yubikey: eval successfully finished. USER: " + otp.getStaticPart() + ". PID: " + pid + ".");
+            // log.info("Yubikey: eval successfully finished. USER: " + "cbdefghijkln" + ". PID: " + pid + ".");
         } else {
             // TODO verification failed
         }
