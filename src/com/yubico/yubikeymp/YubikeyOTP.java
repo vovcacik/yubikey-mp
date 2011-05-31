@@ -54,6 +54,9 @@ public class YubikeyOTP {
     public static YubikeyOTP createInstance(final String otp) {
         // OTP should has length exactly 44 ModHex characters. Note that valid Yubikey may be only 32 ModHex characters
         // long, but then it has no static part. Yubikey-mp requires the static part to be 12 ModHex characters long.
+        if (otp == null) {
+            return null; // TODO check otp=null and check this in other methods!
+        }
         if (otp.length() != 44) {
             log.info("Yubikey: invalid OTP length [" + otp.length() + "] in: " + otp + ".");
             return null;
