@@ -2,6 +2,7 @@ package com.yubico.yubikeymp;
 
 import java.util.Iterator;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -49,31 +50,38 @@ public class YubikeyOTP {
      * 
      * @param otp
      *            Yubikey one time password
-     * @return instance or null if OTP is not valid
+     * @return instance of YubikeyOTP or null if provided OTP is not valid
      */
     public static YubikeyOTP createInstance(final String otp) {
-        // OTP should has length exactly 44 ModHex characters. Note that valid Yubikey may be only 32 ModHex characters
-        // long, but then it has no static part. Yubikey-mp requires the static part to be 12 ModHex characters long.
-        if (otp == null) {
-            return null; // TODO check otp=null and check this in other methods!
-        }
-        if (otp.length() != 44) {
-            log.info("Yubikey: invalid OTP length [" + otp.length() + "] in: " + otp + ".");
+        // FIXME check param!=null in other methods!
+        if (otp != null && isOTP(otp)) {
+            final String staticPart = otp.substring(0, otp.length() - 32);
+            final String dynamicPart = otp.substring(otp.length() - 32);
+            return new YubikeyOTP(staticPart, dynamicPart);
+        } else {
             return null;
         }
+    }
 
-        // Each OTP consist of Modhex characters. These are: cbdefghijklnrtuv.
-        for (int i = 0; i < otp.length(); i++) {
-            int code = otp.codePointAt(i);
-            if (code < 98 || code > 118 || (code >= 111 && code <= 113) || code == 109 || code == 115) {
-                // Current character is not defined for Modhex.
-                log.info("Yubikey: invalid OTP character [" + otp.charAt(i) + "] in: " + otp + ".");
-                return null;
-            }
+    /**
+     * This method checks whether <code>otp</code> parameter is valid OTP for yubikey-mp purposes:<br/>
+     * - ModHex characters only.<br/>
+     * - Static part (aka Yubikey ID) is exactly 12 characters long.<br/>
+     * - Whole OTP is 44 characters long.<br/>
+     * <br/>
+     * This function does <b>not</b> verifies the OTP - use YubikeyOTP.verify() instead.
+     * 
+     * @param otp
+     *            Yubikey OTP to be checked.
+     * @return true if the passed OTP is usable in yubikey-mp, otherwise false.
+     */
+    public static boolean isOTP(final String otp) {
+        if (otp != null && Pattern.matches("^[cbdefghijklnrtuv]{44}$", otp)) {
+            return true;
+        } else {
+            log.info("Yubikey: The provided OTP is malformed: " + otp + ".");
+            return false;
         }
-        final String staticPart = otp.substring(0, otp.length() - 32);
-        final String dynamicPart = otp.substring(otp.length() - 32);
-        return new YubikeyOTP(staticPart, dynamicPart);
     }
 
     /**
@@ -100,10 +108,11 @@ public class YubikeyOTP {
             return true;
         } else {
             log.warning("Yubikey: OTP verification failed: " + this + ".");
-            // if (this.toString().equals("cbdefghijklncbdefghijklnrtuvcbdefghijklnrtuv")) {
-            // log.warning("Yubikey: Demo OTP detected: " + this);
-            // return true;
-            // }
+            // FIXME delete this demo OTP:
+            if (this.toString().equals("cbdefghijklncbdefghijklnrtuvcbdefghijklnrtuv")) {
+                log.warning("Yubikey: Demo OTP detected: " + this);
+                return true;
+            }
             return false;
         }
     }
@@ -118,16 +127,18 @@ public class YubikeyOTP {
 
         final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         final Query query = new Query("Prefs");
-        query.addFilter("clientid", Query.FilterOperator.NOT_EQUAL, "");
+        query.addFilter("clientid", Query.FilterOperator.NOT_EQUAL, null);
 
         final Iterator<Entity> clientIDs = datastore.prepare(query).asIterator();
         
+        // TODO matches only first entity
         if (clientIDs.hasNext()) {
-            final Entity entity = clientIDs.next();
-            final String idString = (String) entity.getProperty("clientid");
-            final int id = Integer.parseInt(idString); // TODO what if idString is not a number?
-            if (id > 0) {
-                clientID = id;
+            final Object value = clientIDs.next().getProperty("clientid");
+            if (value instanceof Integer) {
+                final int id = (Integer) value;
+                if (id > 0) {
+                    clientID = id;
+                }
             }
         }
         return clientID;

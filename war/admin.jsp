@@ -27,7 +27,7 @@
 		admin.setProperty("admin", "");
 		
 	    Entity clientID = new Entity("Prefs");
-		clientID.setProperty("clientid", "");
+	    clientID.setProperty("clientid", 1);
 		
 		Entity secret = new Entity("Secrets");
 		secret.setProperty("user", "");
