@@ -20,7 +20,7 @@ import com.google.appengine.api.datastore.Blob;
  * 
  * @author Vlastimil Ovčáčík
  */
-final class KingdomKey {
+public final class KingdomKey {
     /**
      * Encoding used in string operations.
      */
@@ -38,7 +38,7 @@ final class KingdomKey {
     // TODO null byte arrays after use
     // TODO use 256 bit key
     // TODO run for 14 rounds
-    // TODO use IV
+    // TODO use IV!!! test this - sha hashes should be different
     /**
      * Constructor.
      */
@@ -55,7 +55,7 @@ final class KingdomKey {
      *            non-empty string in KingdomKey.ENCODING encoding
      * @return true if new key was set otherwise false
      */
-    static boolean setKey(String unencrypted) {
+    public static boolean setKey(String unencrypted) {
         byte[] key = null;
         try {
             key = unencrypted.getBytes(KingdomKey.ENCODING);
@@ -73,7 +73,7 @@ final class KingdomKey {
      *            non-empty byte array containing clear-text key to the kingdom.
      * @return true if new key was set, otherwise false.
      */
-    static boolean setKey(byte[] key) {
+    public static boolean setKey(byte[] key) {
         if (KingdomKey.KEY == null && key != null && key.length > 0) {
             KingdomKey.KEY = key;
             return true;
@@ -87,7 +87,7 @@ final class KingdomKey {
      * 
      * @return true if KingdomKey.KEY is set, otherwise false.
      */
-    static boolean isSet() {
+    public static boolean isSet() {
         if (KingdomKey.KEY != null) {
             return true;
         } else {
@@ -102,7 +102,7 @@ final class KingdomKey {
      *            is unencrypted byte array
      * @return encrypted byte array
      */
-    static byte[] encrypt(byte[] unencrypted) {
+    public static byte[] encrypt(byte[] unencrypted) {
         return performCryptographyOperation(unencrypted, Cipher.ENCRYPT_MODE);
     }
 
@@ -113,7 +113,7 @@ final class KingdomKey {
      *            is unencrypted string in KingdomKey.ENCODING encoding
      * @return encrypted blob instance
      */
-    static Blob encrypt(String unencrypted) {
+    public static Blob encrypt(String unencrypted) {
         byte[] secret = null;
         try {
             secret = unencrypted.getBytes(KingdomKey.ENCODING);
@@ -145,6 +145,7 @@ final class KingdomKey {
     static String decrypt(Blob encrypted) {
         byte[] secret = decrypt(encrypted.getBytes());
         String decrypted = null;
+        // TODO check secret != null
         try {
             decrypted = new String(secret, KingdomKey.ENCODING);
         } catch (UnsupportedEncodingException e) {
