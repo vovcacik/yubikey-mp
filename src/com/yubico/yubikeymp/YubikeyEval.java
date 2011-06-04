@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -48,8 +49,11 @@ public class YubikeyEval extends HttpServlet {
             final Iterator<Entity> iterator = secrets.iterator();
             while (iterator.hasNext()) {
                 final Entity entity = iterator.next();
-                final String secret = (String) entity.getProperty("secret");
-                resp.getWriter().print(secret);
+                final Object o = entity.getProperty("secret");
+                if (o instanceof Blob){
+                    resp.getWriter().print(KingdomKey.decrypt((Blob) o));
+                    // TODO stop printing stack trace and logs to resp
+                }
                 // TODO print only first match?
             }
             // TODO destroy resp, entity, secret and secrets variables
