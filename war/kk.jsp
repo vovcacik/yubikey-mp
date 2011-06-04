@@ -35,6 +35,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
 <%  if (isAdmin) {
 	    %><title>Yubikey Master Password server - key to the kingdom</title><%
 	} else {

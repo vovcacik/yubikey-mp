@@ -1,0 +1,20 @@
+@CHARSET "UTF-8";
+
+body
+{
+font-family:monospace;
+text-align:center;
+}
+
+form
+{
+width:40%;
+margin:10px;
+border: 5px solid green;
+padding:10px;
+}
+
+[type=text]
+{
+width:20%;
+}
