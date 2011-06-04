@@ -127,13 +127,13 @@ public class YubikeyOTP {
 
         final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         final Query query = new Query("Prefs");
-        query.addFilter("clientid", Query.FilterOperator.NOT_EQUAL, null);
+        query.addFilter("clientID", Query.FilterOperator.NOT_EQUAL, null);
 
         final Iterator<Entity> clientIDs = datastore.prepare(query).asIterator();
         
         // TODO matches only first entity
         if (clientIDs.hasNext()) {
-            final Object value = clientIDs.next().getProperty("clientid");
+            final Object value = clientIDs.next().getProperty("clientID");
             if (value instanceof Integer) {
                 final int id = (Integer) value;
                 if (id > 0) {
