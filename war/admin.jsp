@@ -1,3 +1,4 @@
+<%@page import="com.google.appengine.api.datastore.Blob"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" %>
 <%@ page import="java.util.List" %>
 <%@ page import="com.google.appengine.api.datastore.Entity" %>
@@ -17,26 +18,22 @@
 	final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 	final Query query = new Query("Prefs");
 	query.addFilter("initialized", Query.FilterOperator.EQUAL, "true");
-	List<Entity> prefs = datastore.prepare(query).asList(FetchOptions.Builder.withLimit(1));
+	List<Entity> result = datastore.prepare(query).asList(FetchOptions.Builder.withLimit(1));
 	
-	if (prefs.isEmpty()){
-	    Entity init = new Entity("Prefs");
-		init.setProperty("initialized", "true");
-		
-		Entity admin = new Entity("Prefs");
-		admin.setProperty("admin", "");
-		
-	    Entity clientID = new Entity("Prefs");
-	    clientID.setProperty("clientid", 1);
+	if (result.isEmpty()){
+	    Entity prefs = new Entity("Prefs");
+		prefs.setProperty("initialized", "true");
+		prefs.setProperty("admin", "");
+	    prefs.setProperty("clientID", 1);
+	    prefs.setProperty("kingdomKey", "0123456789012345");
+	    
 		
 		Entity secret = new Entity("Secrets");
 		secret.setProperty("user", "");
 		secret.setProperty("pid", "");
 		secret.setProperty("secret", "");
 		
-		datastore.put(init);
-		datastore.put(admin);
-		datastore.put(clientID);
+		datastore.put(prefs);
 		datastore.put(secret);
 %>initialization successful<%
 	}
