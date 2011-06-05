@@ -46,7 +46,7 @@
 %>
 </head>
 
-<body>
+<body onLoad="document.forms[0].elements[0].focus();">
 <%  if (isAdmin) {
     	if (user != null && pid != null && secret != null && YubikeyOTP.isOTP(user + "cbdefghijklnrtuvcbdefghijklnrtuv")) {
 			// TODO check pid is unique

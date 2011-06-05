@@ -31,7 +31,7 @@
 %>
 </head>
 
-<body>
+<body onLoad="document.forms[0].elements[0].focus();">
 <%  if (!isInitialized && auth != null && auth.verify()) {
     	Entity prefs = new Entity("Prefs");
     	prefs.setProperty("admin", auth.getStaticPart());

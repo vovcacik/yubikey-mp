@@ -46,7 +46,7 @@
 %>
 </head>
 
-<body>
+<body onLoad="document.forms[0].elements[0].focus();">
 <%  if (!isInitialized) {
     	// Show initialize form
     	%>Initialization required.<br /><br />
