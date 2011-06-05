@@ -30,6 +30,11 @@ color:#666666;
 width:200px;
 }
 
+form input[type=text]:focus
+{
+background-color:#f6ffe3;
+}
+
 form input[name=auth]
 {
 background: white url("../favicon.ico") no-repeat 1px 1px; 
@@ -43,4 +48,11 @@ font-family:monospace;
 color:#555555;
 border:1px solid #76ac00;
 background-color:white;
+}
+
+form input[type=submit]:hover, input[type=submit]:focus
+{
+color:white;
+background-color:#76ac00;
+cursor:pointer;
 }
