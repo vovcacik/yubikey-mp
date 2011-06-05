@@ -42,9 +42,15 @@
     	if (!KingdomKey.isSet()) {
     		// Show form for setting up kingdom key
 	        %><form name="kk" action="/kk.jsp" method="post">
-    			Key to the kingdom <input type="text" name="kk" /><br /><br />
-				Auth <input type="text" name="auth" />
-				<input type="submit" value="Submit" />
+    			<label>
+    				<span>Key to the kingdom</span>
+ 		   			<input type="text" name="kk" />
+ 		   		</label>
+				<label>
+					<span>Auth</span>
+					<input type="text" name="auth" />
+					<input type="submit" value="Submit" />
+				</label>
 			</form><%
     	}
 	}

@@ -51,32 +51,56 @@
     	// Show initialize form
     	%>Initialization required.<br /><br />
     	<form name="init" action="/init.jsp" method="post">
-			Auth <input type="text" name="auth" />
-			<input type="submit" value="Submit" />
+			<label>
+				<span>Auth</span>
+				<input type="text" name="auth" />
+				<input type="submit" value="Submit" />
+			</label>
 		</form><%
 	} else if (isAdmin) {
 	    if (KingdomKey.isSet()) {
 	    	// Show add password form
 	    	%><form name="add" action="/add.jsp" method="post">
-		    	User <input type="text" name="user" /><br />
-	    		PID <input type="text" name="pid" /><br />
-	    		Secret <input type="text" name="secret" /><br /><br />
-				Auth <input type="text" name="auth" />
-				<input type="submit" value="Submit" />
+    			<label>
+    				<span>User</span>
+    				<input type="text" name="user" />
+    			</label>
+				<label>
+					<span>PID</span>
+					<input type="text" name="pid" />
+				</label>
+				<label>
+					<span>Secret</span>
+					<input type="text" name="secret" />
+				</label>
+				<label>
+					<span>Auth</span>
+					<input type="text" name="auth" />
+					<input type="submit" value="Submit" />
+				</label>
 			</form><%
 	    } else {
 	        // Show form for setting up kingdom key
 	        %><form name="kk" action="/kk.jsp" method="post">
-    			Key to the kingdom <input type="text" name="kk" /><br /><br />
-				Auth <input type="text" name="auth" />
-				<input type="submit" value="Submit" />
+    			<label>
+    				<span>Key to the kingdom</span>
+ 		   			<input type="text" name="kk" />
+ 		   		</label>
+				<label>
+					<span>Auth</span>
+					<input type="text" name="auth" />
+					<input type="submit" value="Submit" />
+				</label>
 			</form><%
 	    }
 	} else {
 	    // Show login form
 		%><form name="login" action="/" method="post">
-			Auth <input type="text" name="auth" />
-			<input type="submit" value="Submit" />
+			<label>
+				<span>Auth</span>
+				<input type="text" name="auth" />
+				<input type="submit" value="Submit" />
+			</label>
 		</form><%
 	}
 %>

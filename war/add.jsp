@@ -61,11 +61,23 @@
     	}
     	// Show add password form
     	%><form name="add" action="/add.jsp" method="post">
-    		User <input type="text" name="user" /><br />
-			PID <input type="text" name="pid" /><br />
-			Secret <input type="text" name="secret" /><br /><br />
-			Auth <input type="text" name="auth" />
-			<input type="submit" value="Submit" />
+    		<label>
+    			<span>User</span>
+    			<input type="text" name="user" />
+    		</label>
+			<label>
+				<span>PID</span>
+				<input type="text" name="pid" />
+			</label>
+			<label>
+				<span>Secret</span>
+				<input type="text" name="secret" />
+			</label>
+			<label>
+				<span>Auth</span>
+				<input type="text" name="auth" />
+				<input type="submit" value="Submit" />
+			</label>
 		</form><%
 	}
 %>
