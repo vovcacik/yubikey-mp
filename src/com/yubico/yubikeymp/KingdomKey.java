@@ -1,9 +1,11 @@
 package com.yubico.yubikeymp;
 
 import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Logger;
 
@@ -13,6 +15,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -35,18 +38,32 @@ public final class KingdomKey {
     /**
      * Encryption key. If not set its value is null. If set its value is non-empty byte array.
      */
-    private static transient SecretKey KEY = null;
+    private static transient char[] KEY = null;
     private static final int KEY_LENGTH = 128;
-    private static byte[] SALT = "here should be some really random salt".getBytes();
-    private static int ITERATION = 3887;
 
     private static final String PROVIDER = "SunJCE";
     private static final String ALGORITHM_KEY_GEN = "PBKDF2WithHmacSHA1";
     private static final String ALGORITHM_ENCRYPTION = "AES";
-    private static final String MODE = "ECB";
+    private static final String MODE = "CBC";
     private static final String PADDING = "PKCS5Padding";
 
     private static final Logger log = Logger.getLogger(KingdomKey.class.getName());
+
+    /**
+     * <ITERATIONS_MINIMUM, Integer.MAX_VALUE>
+     */
+    private static final int ITERATIONS_MINIMUM = 5000;
+    /**
+     * 
+     */
+    private static final int ITERATIONS_MAXIMUM = 10000;
+    private static final int SALT_LENGTH = 128;
+    private static final int IV_LENGTH = 128;
+
+    private int iterations;
+    private final byte[] salt;
+    private final byte[] iv;
+
 
     // TODO null byte arrays after use
     // TODO use 256 bit key
@@ -56,8 +73,24 @@ public final class KingdomKey {
     /**
      * Constructor.
      */
-    private KingdomKey() {
-        super();
+    public KingdomKey(int iterations, byte[] salt, byte[] iv) {
+        this.iterations = iterations;
+        this.salt = salt;
+        this.iv = iv;
+    }
+
+    /**
+     * Constructor.
+     */
+    public KingdomKey() {
+        this.salt = new byte[KingdomKey.SALT_LENGTH / 8];
+        this.iv = new byte[KingdomKey.IV_LENGTH / 8];
+
+        SecureRandom random = new SecureRandom();
+        this.iterations = KingdomKey.ITERATIONS_MINIMUM
+                + random.nextInt(KingdomKey.ITERATIONS_MAXIMUM + 1 - KingdomKey.ITERATIONS_MINIMUM);
+        random.nextBytes(this.salt);
+        random.nextBytes(this.iv);
     }
 
     /**
@@ -80,27 +113,8 @@ public final class KingdomKey {
      */
     public static boolean setKey(char[] key) {
         if (KingdomKey.KEY == null && key != null && key.length > 0) {
-            try {
-                SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(KingdomKey.ALGORITHM_KEY_GEN,
-                        KingdomKey.PROVIDER);
-                PBEKeySpec keySpec = new PBEKeySpec(key, KingdomKey.SALT, KingdomKey.ITERATION, KingdomKey.KEY_LENGTH);
-                KingdomKey.KEY = new SecretKeySpec(keyFactory.generateSecret(keySpec).getEncoded(),
-                        ALGORITHM_ENCRYPTION);
-
-                key = null;
-                keySpec = null;
-
+                KingdomKey.KEY = key;
                 return true;
-            } catch (NoSuchAlgorithmException e) {
-                log.severe("Yubikey: " + KingdomKey.ALGORITHM_KEY_GEN + " algorithm is not supported.");
-                e.printStackTrace();
-            } catch (NoSuchProviderException e) {
-                log.severe("Yubikey: " + KingdomKey.PROVIDER + " provider is not available.");
-                e.printStackTrace();
-            } catch (InvalidKeySpecException e) {
-                log.severe("Yubikey: KeySpec is invalid.");
-                e.printStackTrace();
-            }
         }
         return false;
     }
@@ -118,6 +132,18 @@ public final class KingdomKey {
         }
     }
 
+    public byte[] getSalt() {
+        return this.salt.clone(); // TODO is clone good enough?
+    }
+
+    public byte[] getIV() {
+        return this.iv.clone();
+    }
+
+    public int getIterations() {
+        return this.iterations;
+    }
+
     /**
      * Encrypts provided parameter using KingdomKey.KEY.
      * 
@@ -125,7 +151,7 @@ public final class KingdomKey {
      *            is unencrypted byte array
      * @return encrypted byte array
      */
-    public static byte[] encrypt(byte[] unencrypted) {
+    public byte[] encrypt(byte[] unencrypted) {
         return performCryptographyOperation(unencrypted, Cipher.ENCRYPT_MODE);
     }
 
@@ -136,7 +162,7 @@ public final class KingdomKey {
      *            is unencrypted string in KingdomKey.ENCODING encoding
      * @return encrypted blob instance
      */
-    public static Blob encrypt(String unencrypted) {
+    public Blob encrypt(String unencrypted) {
         byte[] secret = null;
         try {
             secret = unencrypted.getBytes(KingdomKey.ENCODING);
@@ -154,7 +180,7 @@ public final class KingdomKey {
      *            is encrypted byte array
      * @return decrypted byte array, otherwise null
      */
-    static byte[] decrypt(byte[] encrypted) {
+    byte[] decrypt(byte[] encrypted) {
         return performCryptographyOperation(encrypted, Cipher.DECRYPT_MODE);
     }
 
@@ -165,7 +191,7 @@ public final class KingdomKey {
      *            is encrypted blob instance.
      * @return decrypted string value of blob in KingdomKey.ENCODING encoding, otherwise null
      */
-    static String decrypt(Blob encrypted) {
+    String decrypt(Blob encrypted) {
         String decrypted = null;
         byte[] secret = decrypt(encrypted.getBytes());
         if (secret != null) {
@@ -189,14 +215,19 @@ public final class KingdomKey {
      *            is mode of operation - Cipher.ENCRYPT_MODE or Cipher.DECRYPT_MODE.
      * @return result of cryptography operation in byte array, otherwise null.
      */
-    private static byte[] performCryptographyOperation(byte[] input, int opMode) {
+    private byte[] performCryptographyOperation(byte[] input, int opMode) {
         byte[] output = null;
 
         if (KingdomKey.isSet()) {
             try {
+                SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(KingdomKey.ALGORITHM_KEY_GEN,
+                        KingdomKey.PROVIDER);
+                PBEKeySpec keySpec = new PBEKeySpec(KingdomKey.KEY, this.salt, this.iterations,
+                        KingdomKey.KEY_LENGTH);
+                SecretKey key = new SecretKeySpec(keyFactory.generateSecret(keySpec).getEncoded(), ALGORITHM_ENCRYPTION);
                 Cipher cipher = Cipher.getInstance(KingdomKey.ALGORITHM_ENCRYPTION + "/" + KingdomKey.MODE + "/"
                         + KingdomKey.PADDING, KingdomKey.PROVIDER);
-                cipher.init(opMode, KingdomKey.KEY);
+                cipher.init(opMode, key, new IvParameterSpec(this.iv));
                 output = cipher.doFinal(input);
             } catch (NoSuchAlgorithmException e) {
                 log.severe("Yubikey: " + KingdomKey.ALGORITHM_ENCRYPTION + " is not supported.");
@@ -215,6 +246,12 @@ public final class KingdomKey {
                 e.printStackTrace();
             } catch (NoSuchProviderException e) {
                 log.severe("Yubikey: " + KingdomKey.PROVIDER + " provider is not available.");
+                e.printStackTrace();
+            } catch (InvalidAlgorithmParameterException e) {
+                log.severe("Yubikey: Algorithm parameter is invalid. This probably means that wrong initialization vector (IV) were provided.");
+                e.printStackTrace();
+            } catch (InvalidKeySpecException e) {
+                log.severe("Yubikey: KeySpec is invalid.");
                 e.printStackTrace();
             }
         }
