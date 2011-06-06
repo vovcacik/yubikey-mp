@@ -49,11 +49,17 @@ public class YubikeyEval extends HttpServlet {
             final Iterator<Entity> iterator = secrets.iterator();
             while (iterator.hasNext()) {
                 final Entity entity = iterator.next();
-                final Object o = entity.getProperty("secret");
-                if (o instanceof Blob){
-                    resp.getWriter().print(KingdomKey.decrypt((Blob) o));
-                    // TODO stop printing stack trace and logs to resp
-                }
+                
+                final Blob secret = (Blob) entity.getProperty("secret");
+                // final int iterations = (Integer) entity.getProperty("iterations");
+                final int iterations = ((Long) entity.getProperty("iterations")).intValue();
+                final byte[] salt = ((Blob) entity.getProperty("salt")).getBytes();
+                final byte[] iv = ((Blob) entity.getProperty("iv")).getBytes();
+                
+                KingdomKey kk = new KingdomKey(iterations, salt, iv);
+                resp.getWriter().print(kk.decrypt((Blob) secret));
+
+                // TODO stop printing stack trace and logs to resp
                 // TODO print only first match?
             }
             // TODO destroy resp, entity, secret and secrets variables

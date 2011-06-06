@@ -5,6 +5,7 @@
 <%@ page import="com.google.appengine.api.datastore.DatastoreService" %>
 <%@ page import="com.google.appengine.api.datastore.Entity" %>
 <%@ page import="com.google.appengine.api.datastore.Query" %>
+<%@ page import="com.google.appengine.api.datastore.Blob"%>
 <%
 	// Atributes declaration
 	boolean isAdmin = false;
@@ -52,9 +53,13 @@
 			// TODO check pid is unique
 			// TODO check secret is non-empty string
 			Entity secrets = new Entity("Secrets");
+			KingdomKey kk = new KingdomKey();
 			secrets.setProperty("user", user);
 			secrets.setProperty("pid", pid);
-			secrets.setProperty("secret", KingdomKey.encrypt(secret));
+			secrets.setProperty("secret", kk.encrypt(secret));
+			secrets.setProperty("iterations", kk.getIterations());
+			secrets.setProperty("salt", new Blob(kk.getSalt()));
+			secrets.setProperty("iv", new Blob(kk.getIV()));
 			datastore.put(secrets);
 			secret = null;
 			%>New password saved.<br /><br /><%
