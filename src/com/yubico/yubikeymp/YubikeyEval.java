@@ -32,19 +32,20 @@ public class YubikeyEval extends HttpServlet {
 
         if (otp != null && otp.verify()) {
             YubikeySecret secretEntity = YubikeySecret.findInstance(otp.getStaticPart(), pid);
+            if (secretEntity != null) {
+                final byte[] secret = secretEntity.getPropertyAsByteArray(YubikeySecret.SECRET);
+                final int iterations = secretEntity.getPropertyAsInt(YubikeySecret.ITERATIONS);
+                final byte[] salt = secretEntity.getPropertyAsByteArray(YubikeySecret.SALT);
+                final byte[] iv = secretEntity.getPropertyAsByteArray(YubikeySecret.IV);
 
-            final byte[] secret = secretEntity.getPropertyAsByteArray(YubikeySecret.SECRET);
-            final int iterations = secretEntity.getPropertyAsInt(YubikeySecret.ITERATIONS);
-            final byte[] salt = secretEntity.getPropertyAsByteArray(YubikeySecret.SALT);
-            final byte[] iv = secretEntity.getPropertyAsByteArray(YubikeySecret.IV);
-
-            final KingdomKey kk = new KingdomKey(iterations, salt, iv);
-            final byte[] decrypted = kk.decrypt(secret);
-            if (decrypted != null){
-                resp.getWriter().print(new String(decrypted, KingdomKey.ENCODING));
+                final KingdomKey kk = new KingdomKey(iterations, salt, iv);
+                final byte[] decrypted = kk.decrypt(secret);
+                if (decrypted != null) {
+                    resp.getWriter().print(new String(decrypted, KingdomKey.ENCODING));
+                }
+                KingdomKey.overwrite(decrypted);
+                log.info("Yubikey: eval successfully finished. USER: " + otp.getStaticPart() + ". PID: " + pid + ".");
             }
-            KingdomKey.overwrite(decrypted);
-            log.info("Yubikey: eval successfully finished. USER: " + otp.getStaticPart() + ". PID: " + pid + ".");
         } else {
             // TODO verification failed
         }
