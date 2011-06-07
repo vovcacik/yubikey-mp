@@ -28,7 +28,7 @@
 
 <body onLoad="document.forms[0].elements[0].focus();">
 <%  if (isAdmin) {
-    	YubikeySecret secret = YubikeySecret.createInstance(request.getParameter("secret"), request.getParameter("pid"), request.getParameter("secret"));
+    	YubikeySecret secret = YubikeySecret.createInstance(request.getParameter("user"), request.getParameter("pid"), request.getParameter("secret"));
     	if (server.put(secret)){
 			%>New password saved.<br /><br /><%
     	} else {
