@@ -136,8 +136,7 @@ public class YubikeySecret {
         if (validUser(user) && validPID(pid)) {
             final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
             final Query query = new Query(KIND);
-            // FIXME query.addFilter(USER, Query.FilterOperator.EQUAL, user);
-            query.addFilter(USER, Query.FilterOperator.EQUAL, "cbdefghijkln");
+            query.addFilter(USER, Query.FilterOperator.EQUAL, user);
             query.addFilter(PID, Query.FilterOperator.EQUAL, pid);
             final Iterator<Entity> iterator = datastore.prepare(query).asIterator();
 
