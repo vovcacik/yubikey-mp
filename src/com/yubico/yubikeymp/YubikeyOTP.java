@@ -76,7 +76,7 @@ public class YubikeyOTP {
      * @return true if the passed OTP is usable in yubikey-mp, otherwise false.
      */
     public static boolean isOTP(final String otp) {
-        if (otp != null && Pattern.matches("^[cbdefghijklnrtuv]{44}$", otp)) {
+        if (otp != null && Pattern.matches("^[" + YubikeyUtil.MODHEX + "]{44}$", otp)) {
             return true;
         } else {
             log.info("Yubikey: The provided OTP is malformed: " + otp + ".");
@@ -109,7 +109,7 @@ public class YubikeyOTP {
         } else {
             log.warning("Yubikey: OTP verification failed: " + this + ".");
             // FIXME delete this demo OTP:
-            if (this.toString().equals("cbdefghijklncbdefghijklnrtuvcbdefghijklnrtuv")) {
+            if (this.toString().equals("cbdefghijkln" + YubikeyUtil.MODHEX + YubikeyUtil.MODHEX)) {
                 log.warning("Yubikey: Demo OTP detected: " + this);
                 return true;
             }
