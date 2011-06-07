@@ -1,12 +1,12 @@
 package com.yubico.yubikeymp;
 
-import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import javax.crypto.BadPaddingException;
@@ -19,13 +19,14 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import com.google.appengine.api.datastore.Blob;
-
 /**
  * This class holds key to the kingdom.<br/>
  * <br/>
  * <i>The secrets stored in datastore are encrypted with the KingdomKey.KEY.</i>
  * 
+ * @author Vlastimil Ovčáčík
+ */
+/**
  * @author Vlastimil Ovčáčík
  */
 public final class KingdomKey {
@@ -34,55 +35,123 @@ public final class KingdomKey {
      * Encoding used in string operations.
      */
     public static final String ENCODING = "UTF-8";
-    
+
     /**
-     * Encryption key. If not set its value is null. If set its value is non-empty byte array.
+     * What JCE provider to use. The standard provider is SunJCE.<br/>
+     * <br/>
+     * <i>Google App Engine supports only SunJCE provider (and some others built-in providers).</i>
+     */
+    private static final String PROVIDER = "SunJCE";
+
+    /**
+     * Encryption key or more precisely encryption password. If not set its value is null. If set its value is non-empty
+     * char array. Actual encryption key is generated from this password with key generator algorithm
+     * (ALGORITHM_KEY_GEN), salt (random byte[] SALT_LENGTH long) and whole process runs for random number of cycles
+     * (see ITERATIONS_MINIMUM and ITERATIONS_MAXIMUM). Unicode is supported.
      */
     private static transient char[] KEY = null;
-    private static final int KEY_LENGTH = 128;
 
-    private static final String PROVIDER = "SunJCE";
+    /**
+     * Defines minimum of iterations required to generate key (inclusive). Its value should be in <1,
+     * ITERATIONS_MAXIMUM> range. Actual number of iterations is random for each saved password and is in
+     * <ITERATIONS_MINIMUM, ITERATIONS_MAXIMUM> range.<br/>
+     * <br/>
+     * <i>PKCS #5 V2.0 recommends at least 1000 iterations.</i>
+     */
+    private static final int ITERATIONS_MINIMUM = 5000;
+
+    /**
+     * Defines maximum of iterations required to generate key (inclusive). Its value should be in <ITERATIONS_MINIMUM,
+     * Integer.MAX_VALUE> range. Actual number of iterations is random for each saved password and is in
+     * <ITERATIONS_MINIMUM, ITERATIONS_MAXIMUM> range.<br/>
+     * <br/>
+     * <i>Integer.MAX_VALUE = (2^31)-1 = 2 147 483 647.</i>
+     */
+    private static final int ITERATIONS_MAXIMUM = 10000;
+
+    /**
+     * Length of salt in bits.<br/>
+     * <br/>
+     * <i>PKCS #5 V2.0 recommends at least 64 bit length.</i>
+     */
+    private static final int SALT_LENGTH = 128;
+
+    /**
+     * This algorithm is used to generate KingdomKey.KEY from password.<br/>
+     * <br/>
+     * <i>PKCS #5 V2.0 recommends PBKDF2WithHmacSHA1.</i>
+     */
     private static final String ALGORITHM_KEY_GEN = "PBKDF2WithHmacSHA1";
+
+    /**
+     * Encryption algorithm.
+     */
     private static final String ALGORITHM_ENCRYPTION = "AES";
+
+    /**
+     * Length of encryption key in bits. Depends on used encryption algorithm.<br/>
+     * <br/>
+     * <i>SunJCE provider limits maximum length of key. For example AES is limited to 128 bits.</i>
+     */
+    private static final int KEY_LENGTH = 128;
+    /**
+     * Mode of operation.
+     */
     private static final String MODE = "CBC";
+
+    /**
+     * Padding used when input of encryption algorithm is not multiple of block size.
+     */
     private static final String PADDING = "PKCS5Padding";
+
+    /**
+     * Initialization vector length. IV is equal to block size of encryption algorithm.
+     */
+    private static final int IV_LENGTH = 128;
 
     private static final Logger log = Logger.getLogger(KingdomKey.class.getName());
 
-    /**
-     * <ITERATIONS_MINIMUM, Integer.MAX_VALUE>
+    /*
+     * Actual number of iterations for this instance. The value is random for each saved password and is in
+     * <ITERATIONS_MINIMUM, ITERATIONS_MAXIMUM> range.
      */
-    private static final int ITERATIONS_MINIMUM = 5000;
-    /**
-     * 
-     */
-    private static final int ITERATIONS_MAXIMUM = 10000;
-    private static final int SALT_LENGTH = 128;
-    private static final int IV_LENGTH = 128;
+    private final int iterations;
 
-    private int iterations;
+    /*
+     * Actual salt used in this instance.
+     */
     private final byte[] salt;
-    private final byte[] iv;
 
+    /*
+     * Actual initialization vector used in this instance.
+     */
+    private final byte[] iv;
 
     // TODO null byte arrays after use
     // TODO use 256 bit key
-    // TODO run for 14 rounds
-    // TODO use IV!!! test this - sha hashes should be different
+    // TODO run for 14 rounds of encryption AES
 
     /**
-     * Constructor.
+     * Use this constructor when you want decrypt data or you want encrypt some data with your own parameters.
+     * 
+     * @param iterations
+     *            number of hash cycles needed to generate key from a password
+     * @param salt
+     *            salt used in hashing key from a password
+     * @param iv
+     *            initialization vector
      */
-    public KingdomKey(int iterations, byte[] salt, byte[] iv) {
+    KingdomKey(int iterations, byte[] salt, byte[] iv) {
         this.iterations = iterations;
         this.salt = salt;
         this.iv = iv;
     }
 
     /**
-     * Constructor.
+     * Use this constructor when you want encrypt data, and you will let KingdomKey class to generate random number of
+     * iterations, salt and initialization vector.
      */
-    public KingdomKey() {
+    KingdomKey() {
         this.salt = new byte[KingdomKey.SALT_LENGTH / 8];
         this.iv = new byte[KingdomKey.IV_LENGTH / 8];
 
@@ -101,7 +170,11 @@ public final class KingdomKey {
      * @return true if new key was set otherwise false
      */
     public static boolean setKey(String key) {
-        return setKey(key.toCharArray());
+        if (key != null) {
+            return setKey(key.toCharArray());
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -115,8 +188,9 @@ public final class KingdomKey {
         if (KingdomKey.KEY == null && key != null && key.length > 0) {
                 KingdomKey.KEY = key;
                 return true;
+        } else {
+            return false;
         }
-        return false;
     }
 
     /**
@@ -132,17 +206,48 @@ public final class KingdomKey {
         }
     }
 
-    public byte[] getSalt() {
-        return this.salt.clone(); // TODO is clone good enough?
+    /**
+     * Use this method to securely overwrite data in an array. The array will be overwritten three times and in
+     * each cycle with new random byte.
+     * 
+     * @param array
+     */
+    public static void overwrite(byte[] array) {
+        if (array != null) {
+            SecureRandom random = new SecureRandom();
+            for (int i = 0; i < 3; i++) {
+                Arrays.fill(array, (byte) random.nextInt(256));
+            }
+        }
     }
 
-    public byte[] getIV() {
+    /**
+     * Getter for number of iterations.
+     * 
+     * @return returns number of iterations used in key generator algorithm (hashing).
+     */
+    int getIterations() {
+        return this.iterations;
+    }
+
+    /**
+     * Getter for salt.
+     * 
+     * @return returns cloned salt used in key generator algorithm (hashing).
+     */
+    byte[] getSalt() {
+        return this.salt.clone();
+    }
+
+    /**
+     * Getter for initialization vector.
+     * 
+     * @return cloned initialization vector used in cryptographic operation.
+     */
+    byte[] getIV() {
         return this.iv.clone();
     }
 
-    public int getIterations() {
-        return this.iterations;
-    }
 
     /**
      * Encrypts provided parameter using KingdomKey.KEY.
@@ -151,26 +256,8 @@ public final class KingdomKey {
      *            is unencrypted byte array
      * @return encrypted byte array
      */
-    public byte[] encrypt(byte[] unencrypted) {
+    byte[] encrypt(final byte[] unencrypted) {
         return performCryptographyOperation(unencrypted, Cipher.ENCRYPT_MODE);
-    }
-
-    /**
-     * Encrypts provided parameter using KingdomKey.KEY.
-     * 
-     * @param unencrypted
-     *            is unencrypted string in KingdomKey.ENCODING encoding
-     * @return encrypted blob instance
-     */
-    public Blob encrypt(String unencrypted) {
-        byte[] secret = null;
-        try {
-            secret = unencrypted.getBytes(KingdomKey.ENCODING);
-        } catch (UnsupportedEncodingException e) {
-            log.severe("Yubikey: " + KingdomKey.ENCODING + " encoding is not supported. Exception occurred while converting a string to byte array.");
-            e.printStackTrace();
-        }
-        return new Blob(encrypt(secret)); // TODO check null
     }
 
     /**
@@ -178,32 +265,10 @@ public final class KingdomKey {
      * 
      * @param encrypted
      *            is encrypted byte array
-     * @return decrypted byte array, otherwise null
+     * @return decrypted byte array
      */
-    byte[] decrypt(byte[] encrypted) {
+    byte[] decrypt(final byte[] encrypted) {
         return performCryptographyOperation(encrypted, Cipher.DECRYPT_MODE);
-    }
-
-    /**
-     * Decrypts provided parameter using KingdomKey.KEY.
-     * 
-     * @param encrypted
-     *            is encrypted blob instance.
-     * @return decrypted string value of blob in KingdomKey.ENCODING encoding, otherwise null
-     */
-    String decrypt(Blob encrypted) {
-        String decrypted = null;
-        byte[] secret = decrypt(encrypted.getBytes());
-        if (secret != null) {
-            try {
-                decrypted = new String(secret, KingdomKey.ENCODING);
-            } catch (UnsupportedEncodingException e) {
-                log.severe("Yubikey: " + KingdomKey.ENCODING
-                        + " encoding is not supported. Exception occurred while converting a byte array to string.");
-                e.printStackTrace();
-            }
-        }
-        return decrypted;
     }
 
     /**
@@ -215,17 +280,18 @@ public final class KingdomKey {
      *            is mode of operation - Cipher.ENCRYPT_MODE or Cipher.DECRYPT_MODE.
      * @return result of cryptography operation in byte array, otherwise null.
      */
-    private byte[] performCryptographyOperation(byte[] input, int opMode) {
-        byte[] output = null;
+    private byte[] performCryptographyOperation(final byte[] input, final int opMode) {
+        byte[] output = null; // TODO return null or throw exception?
 
         if (KingdomKey.isSet()) {
             try {
-                SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(KingdomKey.ALGORITHM_KEY_GEN,
+                final SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(KingdomKey.ALGORITHM_KEY_GEN,
                         KingdomKey.PROVIDER);
-                PBEKeySpec keySpec = new PBEKeySpec(KingdomKey.KEY, this.salt, this.iterations,
+                final PBEKeySpec keySpec = new PBEKeySpec(KingdomKey.KEY, this.salt, this.iterations,
                         KingdomKey.KEY_LENGTH);
-                SecretKey key = new SecretKeySpec(keyFactory.generateSecret(keySpec).getEncoded(), ALGORITHM_ENCRYPTION);
-                Cipher cipher = Cipher.getInstance(KingdomKey.ALGORITHM_ENCRYPTION + "/" + KingdomKey.MODE + "/"
+                final SecretKey key = new SecretKeySpec(keyFactory.generateSecret(keySpec).getEncoded(),
+                        ALGORITHM_ENCRYPTION);
+                final Cipher cipher = Cipher.getInstance(KingdomKey.ALGORITHM_ENCRYPTION + "/" + KingdomKey.MODE + "/"
                         + KingdomKey.PADDING, KingdomKey.PROVIDER);
                 cipher.init(opMode, key, new IvParameterSpec(this.iv));
                 output = cipher.doFinal(input);
@@ -257,8 +323,5 @@ public final class KingdomKey {
         }
 
         return output;
-        /*
-         * return null or throw exception? create my own exception for this purpose, or use some existing?
-         */
     }
 }

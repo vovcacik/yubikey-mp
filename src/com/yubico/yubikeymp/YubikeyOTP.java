@@ -1,13 +1,8 @@
 package com.yubico.yubikeymp;
 
-import java.util.Iterator;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Query;
 import com.yubico.YubicoClient;
 
 /**
@@ -18,7 +13,10 @@ import com.yubico.YubicoClient;
  */
 public class YubikeyOTP {
 
-    private static final Logger log = Logger.getLogger(YubikeyOTP.class.getName());
+    /**
+     * ModHex alphabet. ModHex letters are equal to "0123456789abcdef" in the presented order.
+     */
+    public static final String MODHEX = "cbdefghijklnrtuv";
 
     /**
      * Static part of OTP. Also known as "Yubikey ID". We use static part as user ID in datastore.
@@ -29,6 +27,8 @@ public class YubikeyOTP {
      * Dynamic part of OTP.
      */
     private final String dynamicPart;
+
+    private static final Logger log = Logger.getLogger(YubikeyOTP.class.getName());
 
     /**
      * Private constructor.
@@ -46,14 +46,13 @@ public class YubikeyOTP {
 
     /**
      * Creates instance of YubikeyOTP. Represents valid OTP fulfilling extra requirements: <br/>
-     * - Yubikey ID part of OTP is 12 ModHex characters long.
+     * - Yubikey ID part (static part) of OTP is 12 ModHex characters long.
      * 
      * @param otp
      *            Yubikey one time password
      * @return instance of YubikeyOTP or null if provided OTP is not valid
      */
     public static YubikeyOTP createInstance(final String otp) {
-        // FIXME check param!=null in other methods!
         if (otp != null && isOTP(otp)) {
             final String staticPart = otp.substring(0, otp.length() - 32);
             final String dynamicPart = otp.substring(otp.length() - 32);
@@ -76,7 +75,7 @@ public class YubikeyOTP {
      * @return true if the passed OTP is usable in yubikey-mp, otherwise false.
      */
     public static boolean isOTP(final String otp) {
-        if (otp != null && Pattern.matches("^[" + YubikeyUtil.MODHEX + "]{44}$", otp)) {
+        if (otp != null && Pattern.matches("^[" + YubikeyOTP.MODHEX + "]{44}$", otp)) {
             return true;
         } else {
             log.info("Yubikey: The provided OTP is malformed: " + otp + ".");
@@ -101,47 +100,21 @@ public class YubikeyOTP {
      * @return true if the OTP is verified, otherwise false
      */
     public boolean verify() {
-        final int clientID = this.getClientID();
-        final YubicoClient yubicoClient = new YubicoClient(clientID);
+        YubikeyServer server = YubikeyServer.getInstance();
+        final int apiKey = server.getAPIKey();
+        final YubicoClient yubicoClient = new YubicoClient(apiKey);
         if (yubicoClient.verify(this.toString())) {
             log.info("Yubikey: OTP successfully verified: " + this + ".");
             return true;
         } else {
             log.warning("Yubikey: OTP verification failed: " + this + ".");
             // FIXME delete this demo OTP:
-            if (this.toString().equals("cbdefghijkln" + YubikeyUtil.MODHEX + YubikeyUtil.MODHEX)) {
+            if (this.toString().equals("cbdefghijkln" + YubikeyOTP.MODHEX + YubikeyOTP.MODHEX)) {
                 log.warning("Yubikey: Demo OTP detected: " + this);
                 return true;
             }
             return false;
         }
-    }
-
-    /**
-     * Returns API client ID for use in YubiCloud.
-     * 
-     * @return Client ID from datastore Prefs/clientid if defined or 1 as default value.
-     */
-    private int getClientID() {
-        int clientID = 1; // TODO this default value ok?
-
-        final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-        final Query query = new Query("Prefs");
-        query.addFilter("clientID", Query.FilterOperator.NOT_EQUAL, null);
-
-        final Iterator<Entity> clientIDs = datastore.prepare(query).asIterator();
-        
-        // TODO matches only first entity
-        if (clientIDs.hasNext()) {
-            final Object value = clientIDs.next().getProperty("clientID");
-            if (value instanceof Integer) {
-                final int id = (Integer) value;
-                if (id > 0) {
-                    clientID = id;
-                }
-            }
-        }
-        return clientID;
     }
 
     /**
