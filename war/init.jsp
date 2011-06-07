@@ -8,15 +8,10 @@
 <%
 	// Atributes declaration
 	boolean isInitialized = true;
+	final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
 	// Parameters
 	final YubikeyOTP auth = YubikeyOTP.createInstance(request.getParameter("auth"));
-
-	// Check if server need to initialize
-	final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-	final Query query = new Query("Prefs");
-	Iterator<Entity> iterator = datastore.prepare(query).asIterator();
-	isInitialized = iterator.hasNext();
 
 %><!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>

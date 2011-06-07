@@ -9,30 +9,15 @@
 <%
 	// Atributes declaration
 	boolean isAdmin = false;
-    String admin = null;
+    String admin = YubikeyUtil.getAdminName();
+	final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
 	// Parameters
 	final YubikeyOTP auth = YubikeyOTP.createInstance(request.getParameter("auth"));
+	isAdmin = YubikeyUtil.isAdminsOTP(auth);
 	final String user = request.getParameter("user");
 	final String pid = request.getParameter("pid");
-	String secret = request.getParameter("secret");
-
-	// Get admins name
-	final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-	final Query query = new Query("Prefs");
-	Iterator<Entity> iterator = datastore.prepare(query).asIterator();
-	
-	if (iterator.hasNext()){ //TODO check only latest entity
-	    Object o = iterator.next().getProperty("admin");
-		if (o instanceof String){
-		    admin = (String) o;
-		}
-	}
-	
-	// Determine admin access
-    if (admin != null && auth != null && admin.equals(auth.getStaticPart()) && auth.verify()) {
-        isAdmin = true;
-    }
+	String secret = request.getParameter("secret"); //TODO store in char[]
 
 %><!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -49,7 +34,7 @@
 
 <body onLoad="document.forms[0].elements[0].focus();">
 <%  if (isAdmin) {
-    	if (user != null && pid != null && secret != null && YubikeyOTP.isOTP(user + "cbdefghijklnrtuvcbdefghijklnrtuv")) {
+    	if (user != null && pid != null && secret != null && YubikeyOTP.isOTP(user + YubikeyUtil.MODHEX + YubikeyUtil.MODHEX)) {
 			// TODO check pid is unique
 			// TODO check secret is non-empty string
 			Entity secrets = new Entity("Secrets");

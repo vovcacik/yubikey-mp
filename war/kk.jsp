@@ -8,28 +8,12 @@
 <%
 	// Atributes declaration
 	boolean isAdmin = false;
-    String admin = null;
+    String admin = YubikeyUtil.getAdminName();
 
 	// Parameters
 	final YubikeyOTP auth = YubikeyOTP.createInstance(request.getParameter("auth"));
+	isAdmin = YubikeyUtil.isAdminsOTP(auth);
 	String kk = request.getParameter("kk");
-
-	// Get admins name
-	final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-	final Query query = new Query("Prefs");
-	Iterator<Entity> iterator = datastore.prepare(query).asIterator();	
-	
-	if (iterator.hasNext()){ //TODO check only latest entity
-	    Object o = iterator.next().getProperty("admin");
-		if (o instanceof String){
-		    admin = (String) o;
-		}
-	}
-	
-	// Determine admin access
-    if (admin != null && auth != null && admin.equals(auth.getStaticPart()) && auth.verify()) {
-        isAdmin = true;
-    }
 
 %><!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
