@@ -6,14 +6,11 @@
 <%@ page import="com.google.appengine.api.datastore.Entity" %>
 <%@ page import="com.google.appengine.api.datastore.Query" %>
 <%
-	// Atributes declaration
-	boolean isAdmin = false;
-    String admin = YubikeyUtil.getAdminName();
+	YubikeyServer server = YubikeyServer.getInstance();
+    String admin = server.getAdminName();
 
-	// Parameters
 	final YubikeyOTP auth = YubikeyOTP.createInstance(request.getParameter("auth"));
-	isAdmin = YubikeyUtil.isAdminsOTP(auth);
-	String kk = request.getParameter("kk");
+	boolean isAdmin = server.hasAdminAccess(auth);
 
 %><!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -29,13 +26,12 @@
 </head>
 
 <body>
-<%  if (isAdmin && !KingdomKey.isSet() && kk != null) {
-    	if (KingdomKey.setKey(kk)) {
+<%  if (isAdmin && !KingdomKey.isSet()) {
+    	if (KingdomKey.setKey(request.getParameter("kk"))) {
     	    %>Key to the kingdom set successfully.<%
     	} else {
     	    %>Key to the kingdom cannot be set.<%
     	}
-    	kk = null;
 	}
 %>
 </body>

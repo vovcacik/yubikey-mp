@@ -6,11 +6,9 @@
 <%@ page import="com.google.appengine.api.datastore.Entity" %>
 <%@ page import="com.google.appengine.api.datastore.Query" %>
 <%
-	// Atributes declaration
-	boolean isInitialized = true;
-	final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+	YubikeyServer server = YubikeyServer.getInstance();
+	boolean isInitialized = server.isInitialized();
 
-	// Parameters
 	final YubikeyOTP auth = YubikeyOTP.createInstance(request.getParameter("auth"));
 
 %><!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -28,12 +26,13 @@
 
 <body onLoad="document.forms[0].elements[0].focus();">
 <%  if (!isInitialized && auth != null && auth.verify()) {
-    	Entity prefs = new Entity("Prefs");
-    	prefs.setProperty("admin", auth.getStaticPart());
-    	prefs.setProperty("clientID", 1);
-    	datastore.put(prefs); //TODO <%= <%! how to use them?
-    	%>Initialization completed. New admin is: "<%= auth.getStaticPart() %>"<br /><br /><%
-    	
+    	YubikeyPref pref = YubikeyPref.createInstance(auth.getStaticPart(), 1);
+    	if (server.put(pref)) {
+    		%>Initialization completed. New admin is: "<%= auth.getStaticPart() %>"<br /><br /><%
+    	} else {
+        	%>Initialization could not be completed.<br /><br /><%
+    	}
+
     	if (!KingdomKey.isSet()) {
     		// Show form for setting up kingdom key
 	        %><form name="kk" action="/kk.jsp" method="post">

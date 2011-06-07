@@ -6,14 +6,12 @@
 <%@ page import="com.google.appengine.api.datastore.Entity" %>
 <%@ page import="com.google.appengine.api.datastore.Query" %>
 <%
-	// Atributes declaration
-	boolean isAdmin = false;
-    String admin = YubikeyUtil.getAdminName();
-	boolean isInitialized = YubikeyUtil.isServerInitialized();
-
-	// Parameters
+	YubikeyServer server = YubikeyServer.getInstance();
+    String admin = server.getAdminName();
+	boolean isInitialized = server.isInitialized();
+	
 	final YubikeyOTP auth = YubikeyOTP.createInstance(request.getParameter("auth"));
-	isAdmin = YubikeyUtil.isAdminsOTP(auth);
+	boolean isAdmin = server.hasAdminAccess(auth);
 
 %><!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
