@@ -17,38 +17,16 @@ public class YubikeyServer {
     private static final YubikeyServer instance = new YubikeyServer();
 
     /**
-     * Name of the current admin.
+     * Provides access to datastore.
      */
-    private String adminName = null;
-
-    /**
-     * True if server is initialized. Initialized server contains a record in Prefs kind in datastore. Initialized
-     * server may NOT have set key to the kingdom.
-     */
-    private boolean isInitialized = false;
-
-    /**
-     * API key to the Yubico cloud services.
-     */
-    private int apiKey = 0;
-
-    private final DatastoreService datastore;
+    private final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
     /**
      * Private constructor.
      */
     private YubikeyServer() {
-        datastore = DatastoreServiceFactory.getDatastoreService();
-
-        YubikeyPref pref = YubikeyPref.findInstance();
-        if (pref != null) {
-            adminName = pref.getPropertyAsString(YubikeyPref.ADMIN);
-            apiKey = pref.getPropertyAsInt(YubikeyPref.API_KEY);
-        }
-
-        if (adminName != null) {
-            isInitialized = true;
-        }
+        super();
+        // TODO is this static class?
     }
 
     /**
@@ -66,6 +44,11 @@ public class YubikeyServer {
      * @return admin's name or null if not set.
      */
     public String getAdminName() {
+        String adminName = null;
+        final YubikeyPref pref = YubikeyPref.findInstance();
+        if (pref != null) {
+            adminName = pref.getPropertyAsString(YubikeyPref.ADMIN);
+        }
         return adminName;
     }
 
@@ -77,7 +60,8 @@ public class YubikeyServer {
      * @return true if OTP is issued by admin otherwise false.
      */
     public boolean hasAdminAccess(final YubikeyOTP otp) {
-        return isInitialized && adminName != null && otp != null && adminName.equals(otp.getStaticPart())
+        final String adminName = getAdminName();
+        return isInitialized() && adminName != null && otp != null && adminName.equals(otp.getStaticPart())
                 && otp.verify();
     }
 
@@ -87,7 +71,11 @@ public class YubikeyServer {
      * @return true if server is initialized otherwise false.
      */
     public boolean isInitialized() {
-        return isInitialized;
+        if (getAdminName() != null) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -128,7 +116,11 @@ public class YubikeyServer {
      * @return API key from datastore Prefs kind if defined or 1 as default value.
      */
     public int getAPIKey() {
-        return apiKey > 0 ? apiKey : 1; // TODO default value ok?
+        int apiKey = 1; // TODO default value ok?
+        final YubikeyPref pref = YubikeyPref.findInstance();
+        if (pref != null) {
+            apiKey = pref.getPropertyAsInt(YubikeyPref.API_KEY);
+        }
+        return apiKey;
     }
 }
-
