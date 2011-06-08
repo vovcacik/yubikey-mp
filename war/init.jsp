@@ -12,37 +12,40 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
-<%  if (!isInitialized) {
-	    %><title>Yubikey Master Password server - initialization</title><%
-	} else {
-	    %><title></title><%
-	}
-%>
+<title>Yubikey Master Password server - initialization</title>
 </head>
 
 <body onLoad="document.forms[0].elements[0].focus();">
-<%  if (!isInitialized && auth != null && auth.verify()) {
-    	final YubikeyPref pref = YubikeyPref.createInstance(auth.getStaticPart(), 1);
-    	if (YubikeyServer.put(pref)) {
-    		%>Initialization completed. New admin is: "<%= auth.getStaticPart() %>"<br /><br /><%
+<%  if (auth != null && auth.verify()) {
+    	if (!isInitialized) {
+	    	final YubikeyPref pref = YubikeyPref.createInstance(auth.getStaticPart(), 1);
+	    	if (YubikeyServer.put(pref)) {
+	    		%>Initialization completed. New admin is: "<%= auth.getStaticPart() %>"<%
+	    	} else {
+	        	%>Initialization could not be completed.<%
+	    	}
+	
+	    	if (!KingdomKey.isSet()) {
+	    		// Show form for setting up kingdom key
+		        %><br /><br />
+		        <form name="kk" action="/kk.jsp" method="post">
+	    			<label>
+	    				<span>Key to the kingdom</span>
+	 		   			<input type="text" name="kk" />
+	 		   		</label>
+					<label>
+						<span>Auth</span>
+						<input type="text" name="auth" />
+						<input type="submit" value="Submit" />
+					</label>
+				</form><%
+	    	}
     	} else {
-        	%>Initialization could not be completed.<br /><br /><%
+    	    %>Server is already initialized.<%
     	}
-
-    	if (!KingdomKey.isSet()) {
-    		// Show form for setting up kingdom key
-	        %><form name="kk" action="/kk.jsp" method="post">
-    			<label>
-    				<span>Key to the kingdom</span>
- 		   			<input type="text" name="kk" />
- 		   		</label>
-				<label>
-					<span>Auth</span>
-					<input type="text" name="auth" />
-					<input type="submit" value="Submit" />
-				</label>
-			</form><%
-    	}
+	} else {
+	 	// UNAUTHORIZED
+	    response.sendError(401);
 	}
 %>
 </body>

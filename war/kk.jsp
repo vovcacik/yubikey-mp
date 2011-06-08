@@ -11,21 +11,23 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
-<%  if (isAdmin) {
-	    %><title>Yubikey Master Password server - key to the kingdom</title><%
-	} else {
-	    %><title></title><%
-	}
-%>
+<title>Yubikey Master Password server - key to the kingdom</title>
 </head>
 
 <body>
-<%  if (isAdmin && !KingdomKey.isSet()) {
-    	if (KingdomKey.setKey(request.getParameter("kk"))) {
-    	    %>Key to the kingdom set successfully.<%
+<%  if (isAdmin) {
+    	if (!KingdomKey.isSet()) {
+	    	if (KingdomKey.setKey(request.getParameter("kk"))) {
+	    	    %>Key to the kingdom set successfully.<%
+	    	} else {
+	    	    %>Key to the kingdom could not be set.<%
+	    	}
     	} else {
-    	    %>Key to the kingdom cannot be set.<%
+    	    %>Key to the kingdom is already set.<%
     	}
+	} else {
+	 	// UNAUTHORIZED
+	    response.sendError(401);
 	}
 %>
 </body>

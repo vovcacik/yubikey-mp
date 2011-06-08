@@ -11,24 +11,20 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
-<%  if (isAdmin) {
-	    %><title>Yubikey Master Password server - add new password</title><%
-	} else {
-	    %><title></title><%
-	}
-%>
+<title>Yubikey Master Password server - add new password</title>
 </head>
 
 <body onLoad="document.forms[0].elements[0].focus();">
 <%  if (isAdmin) {
     	final YubikeySecret secret = YubikeySecret.createInstance(request.getParameter("user"), request.getParameter("pid"), request.getParameter("secret"));
     	if (YubikeyServer.put(secret)){
-			%>New password saved.<br /><br /><%
+			%>New password saved.<%
     	} else {
-    	    %>Password was not saved.<br /><br /><%
+    	    %>Password was not saved.<%
     	}
     	// Show add password form
-    	%><form name="add" action="/add.jsp" method="post">
+    	%><br /><br />
+    	<form name="add" action="/add.jsp" method="post">
     		<label>
     			<span>User</span>
     			<input type="text" name="user" />
@@ -47,6 +43,9 @@
 				<input type="submit" value="Submit" />
 			</label>
 		</form><%
+	} else {
+	    // UNAUTHORIZED
+	    response.sendError(401);
 	}
 %>
 </body>
