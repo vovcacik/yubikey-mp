@@ -88,7 +88,7 @@ public class YubikeyPref {
 
         final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         final Query query = new Query(KIND);
-        query.addFilter(ADMIN, Query.FilterOperator.NOT_EQUAL, null);
+        query.addFilter(ADMIN, Query.FilterOperator.NOT_EQUAL, null); // TODO is this good enough?
         final Iterator<Entity> iterator = datastore.prepare(query).asIterator();
 
         if (iterator.hasNext()) {
