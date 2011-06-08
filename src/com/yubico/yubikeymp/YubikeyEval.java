@@ -49,7 +49,9 @@ public class YubikeyEval extends HttpServlet {
                 log.info("Yubikey: eval successfully finished. USER: " + otp.getStaticPart() + ". PID: " + pid + ".");
             }
         } else {
-            // TODO verification failed
+            // TODO verification failed - send 401 or empty?
+            // UNAUTHORIZED
+            // resp.sendError(401);
         }
     }
 }
