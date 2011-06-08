@@ -1,16 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" %>
-<%@ page import="java.util.Iterator"%>
-<%@ page import="com.yubico.yubikeymp.*"%>
-<%@ page import="com.google.appengine.api.datastore.DatastoreServiceFactory" %>
-<%@ page import="com.google.appengine.api.datastore.DatastoreService" %>
-<%@ page import="com.google.appengine.api.datastore.Entity" %>
-<%@ page import="com.google.appengine.api.datastore.Query" %>
+<%@ page import="com.yubico.yubikeymp.YubikeyServer"%>
+<%@ page import="com.yubico.yubikeymp.YubikeyOTP"%>
+<%@ page import="com.yubico.yubikeymp.KingdomKey"%>
 <%
-	YubikeyServer server = YubikeyServer.getInstance();
-    String admin = server.getAdminName();
-
 	final YubikeyOTP auth = YubikeyOTP.createInstance(request.getParameter("auth"));
-	boolean isAdmin = server.hasAdminAccess(auth);
+	final boolean isAdmin = YubikeyServer.hasAdminAccess(auth);
 
 %><!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>

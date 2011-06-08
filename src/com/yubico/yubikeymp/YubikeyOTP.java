@@ -100,8 +100,7 @@ public class YubikeyOTP {
      * @return true if the OTP is verified, otherwise false
      */
     public boolean verify() {
-        YubikeyServer server = YubikeyServer.getInstance();
-        final int apiKey = server.getAPIKey();
+        final int apiKey = YubikeyServer.getAPIKey();
         final YubicoClient yubicoClient = new YubicoClient(apiKey);
         if (yubicoClient.verify(this.toString())) {
             log.info("Yubikey: OTP successfully verified: " + this + ".");

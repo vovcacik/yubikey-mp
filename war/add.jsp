@@ -1,17 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" %>
-<%@ page import="java.util.Iterator"%>
-<%@ page import="com.yubico.yubikeymp.*"%>
-<%@ page import="com.google.appengine.api.datastore.DatastoreServiceFactory" %>
-<%@ page import="com.google.appengine.api.datastore.DatastoreService" %>
-<%@ page import="com.google.appengine.api.datastore.Entity" %>
-<%@ page import="com.google.appengine.api.datastore.Query" %>
-<%@ page import="com.google.appengine.api.datastore.Blob"%>
+<%@ page import="com.yubico.yubikeymp.YubikeyServer"%>
+<%@ page import="com.yubico.yubikeymp.YubikeyOTP"%>
+<%@ page import="com.yubico.yubikeymp.YubikeySecret"%>
 <%
-	YubikeyServer server = YubikeyServer.getInstance();
-    String admin = server.getAdminName();
-    
-	final YubikeyOTP auth = YubikeyOTP.createInstance(request.getParameter("auth"));
-	boolean isAdmin = server.hasAdminAccess(auth);
+    final YubikeyOTP auth = YubikeyOTP.createInstance(request.getParameter("auth"));
+	final boolean isAdmin = YubikeyServer.hasAdminAccess(auth);
 
 %><!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -28,8 +21,8 @@
 
 <body onLoad="document.forms[0].elements[0].focus();">
 <%  if (isAdmin) {
-    	YubikeySecret secret = YubikeySecret.createInstance(request.getParameter("user"), request.getParameter("pid"), request.getParameter("secret"));
-    	if (server.put(secret)){
+    	final YubikeySecret secret = YubikeySecret.createInstance(request.getParameter("user"), request.getParameter("pid"), request.getParameter("secret"));
+    	if (YubikeyServer.put(secret)){
 			%>New password saved.<br /><br /><%
     	} else {
     	    %>Password was not saved.<br /><br /><%
