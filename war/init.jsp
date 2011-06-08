@@ -21,27 +21,38 @@
 	    	final YubikeyPref pref = YubikeyPref.createInstance(auth.getStaticPart(), 1);
 	    	if (YubikeyServer.put(pref)) {
 	    		%>Initialization completed. New admin is: "<%= auth.getStaticPart() %>"<%
+		    	
+	    		if (!KingdomKey.isSet()) {
+		    		// Show form for setting up kingdom key
+			        %><br /><br />
+			        <form name="kk" action="/kk.jsp" method="post">
+		    			<label>
+		    				<span>Key to the kingdom</span>
+		 		   			<input type="text" name="kk" />
+		 		   		</label>
+						<label>
+							<span>Auth</span>
+							<input type="text" name="auth" />
+							<input type="submit" value="Submit" />
+						</label>
+					</form><%
+		    	}
 	    	} else {
 	        	%>Initialization could not be completed.<%
-	    	}
-	
-	    	if (!KingdomKey.isSet()) {
-	    		// Show form for setting up kingdom key
-		        %><br /><br />
-		        <form name="kk" action="/kk.jsp" method="post">
+	        	
+	        	// Show initialize form
+	        	%><br /><br />
+	        	<form name="init" action="/init.jsp" method="post">
 	    			<label>
-	    				<span>Key to the kingdom</span>
-	 		   			<input type="text" name="kk" />
-	 		   		</label>
-					<label>
-						<span>Auth</span>
-						<input type="text" name="auth" />
-						<input type="submit" value="Submit" />
-					</label>
-				</form><%
+	    				<span>Auth</span>
+	    				<input type="text" name="auth" />
+	    				<input type="submit" value="Submit" />
+	    			</label>
+	    		</form><%
 	    	}
     	} else {
     	    %>Server is already initialized.<%
+    	    response.setHeader("Refresh", "3; url=/");
     	}
 	} else {
 	 	// UNAUTHORIZED

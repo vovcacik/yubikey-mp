@@ -19,11 +19,27 @@
     	if (!KingdomKey.isSet()) {
 	    	if (KingdomKey.setKey(request.getParameter("kk"))) {
 	    	    %>Key to the kingdom set successfully.<%
+	    	    response.setHeader("Refresh", "3; url=/");
 	    	} else {
 	    	    %>Key to the kingdom could not be set.<%
+	    	 	
+	    	    // Show form for setting up kingdom key
+		        %><br /><br />
+		        <form name="kk" action="/kk.jsp" method="post">
+	    			<label>
+	    				<span>Key to the kingdom</span>
+	 		   			<input type="text" name="kk" />
+	 		   		</label>
+					<label>
+						<span>Auth</span>
+						<input type="text" name="auth" />
+						<input type="submit" value="Submit" />
+					</label>
+				</form><%
 	    	}
     	} else {
     	    %>Key to the kingdom is already set.<%
+    	    response.setHeader("Refresh", "3; url=/");
     	}
 	} else {
 	 	// UNAUTHORIZED
