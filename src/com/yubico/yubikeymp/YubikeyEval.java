@@ -31,7 +31,7 @@ public class YubikeyEval extends HttpServlet {
         final String pid = req.getParameter("pid");
 
         if (otp != null && otp.verify()) {
-            YubikeySecret secretEntity = YubikeySecret.findInstance(otp.getStaticPart(), pid);
+            final YubikeySecret secretEntity = YubikeySecret.findInstance(otp.getStaticPart(), pid);
             if (secretEntity != null) {
                 final byte[] secret = secretEntity.getPropertyAsByteArray(YubikeySecret.SECRET);
                 final int iterations = secretEntity.getPropertyAsInt(YubikeySecret.ITERATIONS);
@@ -42,6 +42,8 @@ public class YubikeyEval extends HttpServlet {
                 final byte[] decrypted = kk.decrypt(secret);
                 if (decrypted != null) {
                     resp.getWriter().print(new String(decrypted, KingdomKey.ENCODING));
+                    // Try to minimize password exposure in RAM memory.
+                    System.gc(); // TODO performance ok?
                 }
                 KingdomKey.overwrite(decrypted);
                 log.info("Yubikey: eval successfully finished. USER: " + otp.getStaticPart() + ". PID: " + pid + ".");

@@ -101,12 +101,15 @@ public class YubikeySecret {
      *            clear-text password
      * @return instance of YubikeySecret or null if something went wrong.
      */
-    public static YubikeySecret createInstance(final String user, final String pid, final String secret) {
+    public static YubikeySecret createInstance(final String user, final String pid, String secret) {
         YubikeySecret instance = null;
         byte[] secretBytes = null;
         
         try {
             secretBytes = secret.getBytes(KingdomKey.ENCODING);
+            // Try to minimize password exposure in RAM memory.
+            secret = null;
+            System.gc();
         } catch (UnsupportedEncodingException e) {
             log.severe("Yubikey: " + KingdomKey.ENCODING
                     + " encoding is not supported. Exception occurred while converting a string to byte array.");
