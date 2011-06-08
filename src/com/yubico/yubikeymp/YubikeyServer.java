@@ -2,6 +2,7 @@ package com.yubico.yubikeymp;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Transaction;
 
 /**
  * This class represents currently running server instance.
@@ -71,7 +72,19 @@ public class YubikeyServer {
      */
     public static boolean put(final YubikeySecret secret) {
         if (secret != null) {
-            datastore.put(secret.getEntity());
+            final Transaction transaction = datastore.beginTransaction();
+
+            try {
+                datastore.put(secret.getEntity());
+                transaction.commit();
+            } finally {
+                // If transaction is active at this point, something went wrong.
+                if (transaction.isActive()) {
+                    transaction.rollback();
+                    return false;
+                }
+            }
+
             return true;
         } else {
             return false;
@@ -85,9 +98,21 @@ public class YubikeyServer {
      *            the YubikeyPref to put in
      * @return true if operation is successful otherwise false.
      */
-    public static boolean put(YubikeyPref pref) {
+    public static boolean put(final YubikeyPref pref) {
         if (pref != null) {
-            datastore.put(pref.getEntity());
+            final Transaction transaction = datastore.beginTransaction();
+
+            try {
+                datastore.put(pref.getEntity());
+                transaction.commit();
+            } finally {
+                // If transaction is active at this point, something went wrong.
+                if (transaction.isActive()) {
+                    transaction.rollback();
+                    return false;
+                }
+            }
+
             return true;
         } else {
             return false;
