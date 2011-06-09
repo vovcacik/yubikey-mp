@@ -31,6 +31,16 @@ public class YubikeyPref {
      */
     public static final String API_KEY = "api_key";
 
+    /**
+     * Name of property holding admin's email address.
+     */
+    public static final String EMAIL = "email";
+
+    /**
+     * Name of property holding admin's XMPP address.
+     */
+    public static final String XMPP = "xmpp";
+
     // Actual entity which is represented by this instance.
     private final Entity entity;
 
@@ -46,6 +56,8 @@ public class YubikeyPref {
         entity = new Entity(KIND);
         entity.setProperty(ADMIN, adminName);
         entity.setProperty(API_KEY, apiKey);
+        entity.setProperty(EMAIL, ""); // TODO make web interface for these values.
+        entity.setProperty(XMPP, "");
     }
 
     /**

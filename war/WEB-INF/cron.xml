@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cronentries>
   <cron>
-    <!-- TODO the url should be something like /cron/heartbeat || /cron/*. /cron is accessible for admin only... See web.xml -->
-    <url>/</url>
+    <url>/cron/heartbeat.jsp</url>
     <description>Heartbeat of this application.</description>
-    <schedule>every 2 minutes</schedule>
+    <schedule>every 5 minutes</schedule>
   </cron>
 </cronentries>
