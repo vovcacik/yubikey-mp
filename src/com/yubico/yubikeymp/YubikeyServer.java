@@ -45,6 +45,7 @@ public class YubikeyServer {
      * @return admin's name or null if not set.
      */
     public static String getAdminName() {
+        // TODO DRY here, in alertAdmin() and in getAdminName()
         String adminName = null;
         final YubikeyPref pref = YubikeyPref.findInstance();
         if (pref != null) {
@@ -162,6 +163,7 @@ public class YubikeyServer {
      *            timeout in milliseconds.
      */
     public static void alertAdmin(final String subject, final String body, final long timeoutMillis) {
+        // TODO DRY here, in alertAdmin() and in getAdminName()
         // TODO xmpp alerts too
         final long now = System.currentTimeMillis();
         final Long timeout = timeouts.get(subject);
@@ -198,6 +200,7 @@ public class YubikeyServer {
      *            Body of the email.
      */
     private static void sendEmail(final String to, final String subject, final String body) {
+        // TODO DRY here, in alertAdmin() and in getAdminName()
         // Get admin's email address. E-mails are always sent from admin.
         String from = null;
         final YubikeyPref pref = YubikeyPref.findInstance();
