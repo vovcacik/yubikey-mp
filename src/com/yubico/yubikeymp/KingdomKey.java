@@ -282,18 +282,40 @@ public final class KingdomKey {
      */
     private byte[] performCryptographyOperation(final byte[] input, final int opMode) {
         byte[] output = null; // TODO return null or throw exception?
+        PBEKeySpec keySpec = null;
 
         if (KingdomKey.isSet()) {
             try {
+                /* Secret Key Factory is used to generate encryption key from password. */
                 final SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(KingdomKey.ALGORITHM_KEY_GEN,
                         KingdomKey.PROVIDER);
-                final PBEKeySpec keySpec = new PBEKeySpec(KingdomKey.KEY, this.salt, this.iterations,
+                /*
+                 * Password based-encryption key specification keySpec - stores password, salt, number of iterations and
+                 * expected key length.
+                 */
+                keySpec = new PBEKeySpec(KingdomKey.KEY, this.salt, this.iterations,
                         KingdomKey.KEY_LENGTH);
+                /*
+                 * We take two steps here:
+                 * (1) key factory generates key from password specified in keySpec. Iterations, salt and key length is
+                 * used here. The result of generateSecret() method is SecretKey instance for
+                 * KingdomKey.ALGORITHM_KEY_GEN algorithm. This SecretKey instance is not usable for AES (default)
+                 * algorithm - see step 2. Method getEncoded() returns the (actual encryption) key in byte array.
+                 * (2) because we use AES algorithm (by default) we have to wrap the key into SecretKey instance with
+                 * AES algorithm specified. That instance is created by calling SecretKeySpec constructor and is stored
+                 * in "key" variable.
+                 */
                 final SecretKey key = new SecretKeySpec(keyFactory.generateSecret(keySpec).getEncoded(),
                         ALGORITHM_ENCRYPTION);
+                /* Cipher object does the actual encryption operation. */
                 final Cipher cipher = Cipher.getInstance(KingdomKey.ALGORITHM_ENCRYPTION + "/" + KingdomKey.MODE + "/"
                         + KingdomKey.PADDING, KingdomKey.PROVIDER);
+                /*
+                 * Cipher needs to know operation mode (encryption/decryption), encryption key and initialization
+                 * vector.
+                 */
                 cipher.init(opMode, key, new IvParameterSpec(this.iv));
+                /* Process input and save it in output variable. */
                 output = cipher.doFinal(input);
             } catch (NoSuchAlgorithmException e) {
                 log.severe("Yubikey: " + KingdomKey.ALGORITHM_ENCRYPTION + " is not supported.");
@@ -319,6 +341,12 @@ public final class KingdomKey {
             } catch (InvalidKeySpecException e) {
                 log.severe("Yubikey: KeySpec is invalid.");
                 e.printStackTrace();
+            } finally {
+                /* Clean up */
+                overwrite(input);
+                if (keySpec != null) {
+                    keySpec.clearPassword();
+                }
             }
         }
 
