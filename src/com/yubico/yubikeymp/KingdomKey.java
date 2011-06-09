@@ -109,6 +109,11 @@ public final class KingdomKey {
      */
     private static final int IV_LENGTH = 128;
 
+    /**
+     * Preferred algorithm to generate random numbers.
+     */
+    private static final String ALGORITHM_RNG = "SHA1PRNG";
+
     private static final Logger log = Logger.getLogger(KingdomKey.class.getName());
 
     /*
@@ -155,7 +160,7 @@ public final class KingdomKey {
         this.salt = new byte[KingdomKey.SALT_LENGTH / 8];
         this.iv = new byte[KingdomKey.IV_LENGTH / 8];
 
-        SecureRandom random = new SecureRandom();
+        SecureRandom random = getSecureRandom();
         this.iterations = KingdomKey.ITERATIONS_MINIMUM
                 + random.nextInt(KingdomKey.ITERATIONS_MAXIMUM + 1 - KingdomKey.ITERATIONS_MINIMUM);
         random.nextBytes(this.salt);
@@ -214,11 +219,31 @@ public final class KingdomKey {
      */
     public static void overwrite(byte[] array) {
         if (array != null) {
-            SecureRandom random = new SecureRandom();
+            SecureRandom random = getSecureRandom();
             for (int i = 0; i < 3; i++) {
                 Arrays.fill(array, (byte) random.nextInt(256));
             }
         }
+    }
+
+    /**
+     * This method tries to provide KingdomKey.ALGORITHM_RNG random number generator (RNG). If not available it returns
+     * first RNG found among other providers. If no RNG found it returns Java default RNG.
+     * 
+     * @return preferred KingdomKey.ALGORITHM_RNG RNG if available, or first RNG among other providers if available, or
+     *         default Java RNG.
+     */
+    private static SecureRandom getSecureRandom() {
+        SecureRandom random = new SecureRandom();
+        try {
+            random = SecureRandom.getInstance(KingdomKey.ALGORITHM_RNG);
+        } catch (NoSuchAlgorithmException e) {
+            log.severe("Yubikey: Preferred " + KingdomKey.ALGORITHM_RNG + " algorithm is not available. "
+                    + random.getAlgorithm() + " was used instead. Do you believe " + random.getAlgorithm()
+                    + " is strong enough for you?");
+            e.printStackTrace();
+        }
+        return random;
     }
 
     /**
@@ -293,8 +318,7 @@ public final class KingdomKey {
                  * Password based-encryption key specification keySpec - stores password, salt, number of iterations and
                  * expected key length.
                  */
-                keySpec = new PBEKeySpec(KingdomKey.KEY, this.salt, this.iterations,
-                        KingdomKey.KEY_LENGTH);
+                keySpec = new PBEKeySpec(KingdomKey.KEY, this.salt, this.iterations, KingdomKey.KEY_LENGTH);
                 /*
                  * We take two steps here:
                  * (1) key factory generates key from password specified in keySpec. Iterations, salt and key length is
