@@ -25,7 +25,7 @@ If you don't have a Google account you have to create one at https://www.google.
 Now you should have an empty application. Each application has its dashboard, where you can see status, change settings, view logs and edit datastore. You can now return to https://appengine.google.com/ and click on your new app to get to the app's dashboard. From the dashboard you see it is empty. Follow next steps to upload yubikey-mp to your app.
 
 **3. Download latest yubikey-mp server**
-  * Go to http://code.google.com/p/yubikey-mp/downloads/list and download latest version.
+  * Go to https://github.com/vovcacik/yubikey-mp/releases and download latest version.
   * Unzip the archive.
   * Locate this file **yubikey-mp\war\WEB-INF\appengine-web.xml**
   * Open it in an editor and put your **Application Identifier** into `<`application`>` tag. For example:

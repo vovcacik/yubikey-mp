@@ -1,12 +1,12 @@
 # Roadmap #
 
-**[Version 0.1](http://code.google.com/p/yubikey-mp/downloads/detail?name=yubikey-mp%20v0.1.zip&can=2&q=)**
+**[Version 0.1](https://github.com/vovcacik/yubikey-mp/releases/tag/v0.1)**
   * SSL only
   * Unicode support
   * Multiuser support
   * Remote access via /eval URL
 
-**[Version 0.11](http://code.google.com/p/yubikey-mp/downloads/detail?name=yubikey-mp%20v0.11.zip&can=2&q=)**
+**[Version 0.11](https://github.com/vovcacik/yubikey-mp/releases/tag/v0.11)**
   * using SSL to access Yubico Validation Server
 
 **Version 0.2** (expected on 1 July 2011)

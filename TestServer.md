@@ -9,7 +9,7 @@ It is recommended to create new blank Firefox profile for this demo. If you don'
   1. in the profile manager select to create new profile and follow instructions
   1. select newly created profile and run Firefox
 
-After this follow the [Firefox tutorial](TutorialFirefox.md) or [Firefox video tutorial](http://yubikey-mp.googlecode.com/svn/wiki/swf/firefox.htm) and use values described in the following section.
+After this follow the [Firefox tutorial](TutorialFirefox.md) or [Firefox video tutorial](https://cdn.rawgit.com/vovcacik/yubikey-mp/wiki/swf/firefox.htm) and use values described in the following section.
 
 # Test server details #
 

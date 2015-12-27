@@ -24,6 +24,6 @@ If you want to see yubikey-mp in action without deploying your own yubikey-mp se
 
 ### Watch video tutorials ###
 
-[Deployment video tutorial](http://yubikey-mp.googlecode.com/svn/wiki/swf/deploy.htm) (deprecated, wait for new version)
+[Deployment video tutorial](https://cdn.rawgit.com/vovcacik/yubikey-mp/wiki/swf/deploy.htm) (deprecated, wait for new version)
 
-[Firefox extension video tutorial](http://yubikey-mp.googlecode.com/svn/wiki/swf/firefox.htm)
+[Firefox extension video tutorial](https://cdn.rawgit.com/vovcacik/yubikey-mp/wiki/swf/firefox.htm)
