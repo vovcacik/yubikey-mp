@@ -50,6 +50,7 @@ This parameter contains your password. Insert your password in readable form, un
 
 # Summary #
 In the examples above we have created this table:
+
 |user|pid|secret|
 |:---|:--|:-----|
 |fifjgjgkhchb|firefox|myStr0ngPazzvvOrd|
