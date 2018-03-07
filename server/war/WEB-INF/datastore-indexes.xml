@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<datastore-indexes autoGenerate="true">
+	<!-- For more complex queries we need to build an index. This one is for queries in YubikeySecret class. -->
+    <datastore-index kind="Secrets" ancestor="false">
+        <property name="user" direction="asc" />
+        <property name="pid" direction="asc" />
+    </datastore-index>
+</datastore-indexes>
